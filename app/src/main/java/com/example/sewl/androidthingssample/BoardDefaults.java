@@ -19,6 +19,10 @@ public class BoardDefaults {
     private static final String DEVICE_IMX6UL_PICO = "imx6ul_pico";
     private static final String DEVICE_IMX6UL_VVDN = "imx6ul_iopb";
     private static final String DEVICE_IMX7D_PICO = "imx7d_pico";
+
+    public static final String PWM2 = "PWM2";
+    public static final String PWM1 = "PWM1";
+
     private static String sBoardVariant = "";
 
     /**

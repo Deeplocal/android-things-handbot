@@ -32,8 +32,8 @@ public class Helper {
     public static final int IMAGE_SIZE = 128;
     private static final int IMAGE_MEAN = 0;
     private static final float IMAGE_STD = 255;
-    private static final String LABELS_FILE = "retrained_labels.txt";
-    public static final String MODEL_FILE = "file:///android_asset/retrained_graph.pb";
+    private static final String LABELS_FILE = "retrained_labels_0.25_3000.txt";
+    public static final String MODEL_FILE = "file:///android_asset/retrained_graph_0.25_3000.pb";
     public static final String INPUT_NAME = "input:0";
     public static final String OUTPUT_OPERATION = "final_result";
     public static final String OUTPUT_NAME = OUTPUT_OPERATION + ":0";

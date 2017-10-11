@@ -20,6 +20,7 @@ import android.util.Size;
 import java.util.Collections;
 
 import static android.content.Context.CAMERA_SERVICE;
+import static android.graphics.ImageFormat.JPEG;
 
 /**
  * Created by mderrick on 10/2/17.
@@ -41,6 +42,8 @@ public class CameraHandler {
     private ImageReader mImageReader;
 
     private CameraReadyListener cameraReadyListener;
+
+    private boolean captureSessionCreated;
 
     // Lazy-loaded singleton, so only one instance of the camera is created.
     private CameraHandler() {
@@ -70,10 +73,18 @@ public class CameraHandler {
             return;
         }
         String id = camIds[0];
+        try {
+            CameraCharacteristics characteristics = manager.getCameraCharacteristics(id);
+            StreamConfigurationMap configs = characteristics.get(
+                    CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                configs.getInputSizes(JPEG);
+        } catch (CameraAccessException e) {
+            Log.i("CAMERA", "failed to get characteristics");
+        }
         Log.d(TAG, "Using camera id " + id);
         // Initialize the image processor
         mImageReader = ImageReader.newInstance(IMAGE_WIDTH, IMAGE_HEIGHT,
-                ImageFormat.JPEG, MAX_IMAGES);
+                JPEG, MAX_IMAGES);
         mImageReader.setOnImageAvailableListener(
                 imageAvailableListener, backgroundHandler);
         // Open the camera resource
@@ -127,6 +138,7 @@ public class CameraHandler {
                     Collections.singletonList(mImageReader.getSurface()),
                     mSessionCallback,
                     null);
+            captureSessionCreated = true;
         } catch (CameraAccessException cae) {
             Log.d(TAG, "access exception while preparing pic", cae);
         }
