@@ -1,12 +1,12 @@
 package com.example.sewl.androidthingssample;
 
 import android.content.Context;
-import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -45,6 +45,8 @@ public class CameraHandler {
 
     private boolean captureSessionCreated;
 
+    private Handler backgroundHandler;
+
     // Lazy-loaded singleton, so only one instance of the camera is created.
     private CameraHandler() {
     }
@@ -63,6 +65,7 @@ public class CameraHandler {
         // Discover the camera instance
         CameraManager manager = (CameraManager) context.getSystemService(CAMERA_SERVICE);
         String[] camIds = {};
+        this.backgroundHandler = backgroundHandler;
         try {
             camIds = manager.getCameraIdList();
         } catch (CameraAccessException e) {
@@ -138,6 +141,7 @@ public class CameraHandler {
                     Collections.singletonList(mImageReader.getSurface()),
                     mSessionCallback,
                     null);
+
             captureSessionCreated = true;
         } catch (CameraAccessException cae) {
             Log.d(TAG, "access exception while preparing pic", cae);
@@ -154,7 +158,6 @@ public class CameraHandler {
                     if (mCameraDevice == null) {
                         return;
                     }
-                    // When the session is ready, we start capture.
                     mCaptureSession = cameraCaptureSession;
                     triggerImageCapture();
                 }
@@ -169,11 +172,23 @@ public class CameraHandler {
     private void triggerImageCapture() {
         try {
             final CaptureRequest.Builder captureBuilder =
-                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+                    mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureBuilder.addTarget(mImageReader.getSurface());
-            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+//            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+            captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             Log.d(TAG, "Capture request created.");
-            mCaptureSession.capture(captureBuilder.build(), mCaptureCallback, null);
+            captureBuilder.set(
+                    CaptureRequest.CONTROL_AF_TRIGGER,
+                    CameraMetadata.CONTROL_AF_TRIGGER_START);
+//            mCaptureSession.capture(captureBuilder.build(), mCaptureCallback, null);
+//            mCaptureSession.setRepeatingRequest(captureBuilder.build(), mCaptureCallback, backgroundHandler);
+            mCaptureSession.setRepeatingRequest(captureBuilder.build(), new CameraCaptureSession.CaptureCallback() {
+                @Override
+                public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+                    super.onCaptureCompleted(session, request, result);
+                    Log.i("COMPLETE", "complete");
+                }
+            }, null);
         } catch (CameraAccessException cae) {
             Log.d(TAG, "camera capture exception");
         }

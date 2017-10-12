@@ -1,8 +1,6 @@
 package com.example.sewl.androidthingssample;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,13 +9,16 @@ import android.util.Log;
 
 import java.util.List;
 
-public class ImageClassifierActivity extends Activity implements ImageReader.OnImageAvailableListener, CameraHandler.CameraReadyListener {
+public class ImageClassifierActivity extends Activity
+                                     implements ImageReader.OnImageAvailableListener,
+                                                CameraHandler.CameraReadyListener,
+                                                ImageClassificationAsyncTask.ClassificationAvailableListener {
 
-    private ImagePreprocessor mImagePreprocessor;
+    private ImagePreprocessor imagePreprocessor;
 
     private CameraHandler mCameraHandler;
 
-    private TensorFlowImageClassifier mTensorFlowClassifier;
+    private TensorFlowImageClassifier tensorFlowClassifier;
 
     private HandlerThread mBackgroundThread;
 
@@ -26,6 +27,8 @@ public class ImageClassifierActivity extends Activity implements ImageReader.OnI
     private long currentTime;
 
     private HandController handController;
+
+    private Game currentGame;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -41,62 +44,40 @@ public class ImageClassifierActivity extends Activity implements ImageReader.OnI
         mBackgroundHandler.post(mInitializeOnBackground);
         handController = new HandController();
         handController.init();
-        handController.handleAction("ok");
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handController.handleAction("rock");
-            }
-        }, 3000);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handController.handleAction("scissors");
-            }
-        }, 5000);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handController.handleAction("paper");
-            }
-        }, 7000);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handController.relax();
-            }
-        }, 9000);
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {
         @Override
         public void run() {
-            mImagePreprocessor = new ImagePreprocessor();
+            imagePreprocessor = new ImagePreprocessor();
             mCameraHandler = CameraHandler.getInstance();
             mCameraHandler.initializeCamera(
                     ImageClassifierActivity.this, mBackgroundHandler,
                     ImageClassifierActivity.this);
             mCameraHandler.setCameraReadyListener(ImageClassifierActivity.this);
-            mTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this);
+            tensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this);
+            currentGame = new SimonSays(handController);
+            currentGame.start();
         }
     };
 
     @Override
+    public void onImageClassificationAvailable(List<Classifier.Recognition> classifications) {
+        if (classifications.size() > 0) {
+            Log.i("ACTION", "action: " + classifications);
+//            handController.handleAction(classifications.get(0).getTitle());
+            if (currentGame != null) {
+                currentGame.run(classifications.get(0).getTitle());
+            }
+        }
+    }
+
+    @Override
     public void onImageAvailable(ImageReader reader) {
-        final Bitmap bitmap;
-        try (Image image = reader.acquireNextImage()) {
-            bitmap = mImagePreprocessor.preprocessImage(image);
-        }
-
-        final List<Classifier.Recognition> results = mTensorFlowClassifier.doRecognize(bitmap);
-        Log.i("RESULTS", "Took " + (System.currentTimeMillis() - currentTime) + " milliseconds.");
-        if (results.size() > 0) {
-            Log.i("ACTION", "action: " + results);
-//            handController.handleAction(results.get(0).getTitle());
-        }
-
-        mCameraHandler.takePicture();
-        currentTime = System.currentTimeMillis();
+//        mCameraHandler.takePicture();
+//        currentGame.run("rock");
+        new ImageClassificationAsyncTask(
+                imagePreprocessor, tensorFlowClassifier, this).execute(reader);
     }
 
     @Override
@@ -114,7 +95,7 @@ public class ImageClassifierActivity extends Activity implements ImageReader.OnI
             if (mCameraHandler != null) mCameraHandler.shutDown();
         } catch (Throwable t) { }
         try {
-            if (mTensorFlowClassifier != null) mTensorFlowClassifier.destroyClassifier();
+            if (tensorFlowClassifier != null) tensorFlowClassifier.destroyClassifier();
         } catch (Throwable t) { }
     }
 

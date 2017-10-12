@@ -1,0 +1,7 @@
+paper
+ok
+spiderman
+three
+rock
+scissors
+loser

@@ -1,5 +1,7 @@
 package com.example.sewl.androidthingssample;
 
+import android.util.Log;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -7,14 +9,13 @@ import java.util.Map;
  * Created by mderrick on 10/11/17.
  */
 
-public class RockPaperScissors {
+public class RockPaperScissors implements Game {
 
     public static final int WIN_SAMPLES_NEEDED = 3;
+
     private HandController handController;
 
     private Map<String, Integer> monitoredActions = new HashMap<>();
-
-    private int actionsOfInterest;
 
     private int totalRecordedActions;
 
@@ -22,9 +23,13 @@ public class RockPaperScissors {
 
     private int roundWins;
 
+    private long timeToTransition = System.currentTimeMillis();
+
     private String[] ACTIONS = new String[] { "rock", "paper", "scissors" };
 
     private String thrownAction;
+
+    private static final long ANIMATION_WAIT_TIME = 3000;
 
     public RockPaperScissors(HandController handController) {
         this.handController = handController;
@@ -33,12 +38,19 @@ public class RockPaperScissors {
     private enum STATES {
         IDLE,
         INITIATE,
+        INITIATE_WAIT,
         COUNTDOWN,
+        COUNTDOWN_WAIT,
         THROW,
+        THROW_WAIT,
         MONITOR,
         DETERMINE_ROUND_WINNER,
         WIN,
         LOSS,
+        WAIT_FOR_NEW_ROUND,
+        WAIT_FOR_NEW_GAME,
+        RETURN_TO_IDLE,
+        RETURN_TO_IDLE_WAIT
     }
 
     private enum GAME_RESULTS {
@@ -47,37 +59,51 @@ public class RockPaperScissors {
         TIE
     }
 
-    private STATES currentState;
+    private STATES currentState = STATES.IDLE;
 
-    public void init() {
-        this.currentState = STATES.IDLE;
-    }
-
+    @Override
     public void start() {
         currentState = STATES.INITIATE;
     }
 
+    @Override
     public void stop() {
         currentState = STATES.IDLE;
     }
 
+    @Override
     public void run(String seenAction) {
         if (currentState == STATES.IDLE) {
-            roundLosses = 0;
-            roundWins = 0;
+            resetGame();
+            Log.i("STATE", "IDLE");
         } else if (currentState == STATES.INITIATE) {
+            Log.i("STATE", "STATES.INITIATE");
+            resetRound();
+            setTransitionTime();
             handController.moveToRPSReady();
-            currentState = STATES.COUNTDOWN;
+            currentState = STATES.INITIATE_WAIT;
+        } else if (currentState == STATES.INITIATE_WAIT) {
+            Log.i("STATE", "STATES.INITIATE_WAIT");
+            currentState = nextStateForWaitState(STATES.COUNTDOWN);
         } else if (currentState == STATES.COUNTDOWN) {
-            handController.countDown();
-            currentState = STATES.THROW;
+            Log.i("STATE", "STATES.COUNTDOWN");
+            setTransitionTime();
+            handController.one();
+            currentState = STATES.COUNTDOWN_WAIT;
+        } else if (currentState == STATES.COUNTDOWN_WAIT) {
+            Log.i("STATE", "STATES.COUNTDOWN_WAIT");
+            currentState = nextStateForWaitState(STATES.THROW);
         } else if (currentState == STATES.THROW) {
+            Log.i("STATE", "STATES.THROW");
+            setTransitionTime();
             handController.throwRPSAction(seenAction);
-            actionsOfInterest = 0;
-            totalRecordedActions = 0;
             thrownAction = ACTIONS[(int)(Math.random() * ACTIONS.length)];
-            currentState = STATES.MONITOR;
+            currentState = STATES.THROW_WAIT;
+        } else if (currentState == STATES.THROW_WAIT) {
+            Log.i("STATE", "STATES.THROW_WAIT");
+            currentState = nextStateForWaitState(STATES.MONITOR);
         } else if (currentState == STATES.MONITOR) {
+            Log.i("STATE", "STATES.MONITOR");
             logAction(seenAction);
             if (getUserThrow() != null) {
                 currentState = STATES.DETERMINE_ROUND_WINNER;
@@ -86,25 +112,47 @@ public class RockPaperScissors {
             }
             totalRecordedActions++;
         } else if (currentState == STATES.DETERMINE_ROUND_WINNER) {
+            Log.i("STATE", "STATES.DETERMINE_ROUND_WINNER");
             String userThrow = getUserThrow();
             GAME_RESULTS gameResults = getGameResults(userThrow);
             if (gameResults == GAME_RESULTS.WIN) {
+                Log.i("STATE", "win: " + thrownAction + " vs " + userThrow);
                 roundWins++;
             } else if (gameResults == GAME_RESULTS.LOSS) {
+                Log.i("STATE", "loss: " + thrownAction + " vs " + userThrow);
                 roundLosses++;
             }
 
             if (roundWins + roundLosses >= 3) {
                 currentState = roundWins > roundLosses ? STATES.WIN : STATES.LOSS;
             } else {
-                currentState = STATES.INITIATE;
+                setTransitionTime();
+                currentState = STATES.WAIT_FOR_NEW_ROUND;
             }
         } else if (currentState == STATES.WIN) {
+            Log.i("STATE", "STATES.WIN");
             handController.thumbsUp();
-            currentState = STATES.IDLE;
+            setTransitionTime();
+            currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.LOSS) {
+            Log.i("STATE", "STATES.LOSS");
             handController.thumbsDown();
-            currentState = STATES.IDLE;
+            setTransitionTime();
+            currentState = STATES.WAIT_FOR_NEW_GAME;
+        } else if (currentState == STATES.WAIT_FOR_NEW_ROUND) {
+            Log.i("STATE", "STATES.WAIT_FOR_NEW_ROUND");
+            currentState = nextStateForWaitState(STATES.INITIATE);
+        } else if (currentState == STATES.WAIT_FOR_NEW_GAME) {
+            Log.i("STATE", "STATES.WAIT_FOR_NEW_GAME");
+            currentState = nextStateForWaitState(STATES.RETURN_TO_IDLE);
+        } else if (currentState == STATES.RETURN_TO_IDLE) {
+            Log.i("STATE", "STATES.RETURN_TO_IDLE");
+            handController.moveToIdle();
+            setTransitionTime();
+            currentState = STATES.RETURN_TO_IDLE_WAIT;
+        } else if (currentState == STATES.RETURN_TO_IDLE_WAIT) {
+            Log.i("STATE", "STATES.RETURN_TO_IDLE_WAIT");
+            currentState = nextStateForWaitState(STATES.IDLE);
         }
     }
 
@@ -144,6 +192,28 @@ public class RockPaperScissors {
             }
         }
         return null;
+    }
+
+    private void resetGame() {
+        roundLosses = 0;
+        roundWins = 0;
+    }
+
+    private void setTransitionTime() {
+        timeToTransition = System.currentTimeMillis() + ANIMATION_WAIT_TIME;
+    }
+
+    private void resetRound() {
+        totalRecordedActions = 0;
+        monitoredActions = new HashMap();
+    }
+
+    private STATES nextStateForWaitState(STATES nextState) {
+        if (System.currentTimeMillis() >= timeToTransition) {
+            return nextState;
+        } else {
+            return currentState;
+        }
     }
 
     private void logAction(String seenAction) {

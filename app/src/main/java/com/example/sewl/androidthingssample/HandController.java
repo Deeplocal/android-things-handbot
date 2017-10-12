@@ -1,7 +1,5 @@
 package com.example.sewl.androidthingssample;
 
-import android.util.Log;
-
 /**
  * Created by mderrick on 10/10/17.
  */
@@ -45,38 +43,45 @@ public class HandController {
     }
 
     private void scissors() {
-        indexFinger.loose();
-        middleFinger.loose();
-        ringFinger.flex();
-        pinky.flex();
+//        indexFinger.loose();
+//        middleFinger.loose();
+//        ringFinger.flex();
+//        pinky.flex();
     }
 
     private void ok() {
-        middleFinger.setAngle(80);
-        ringFinger.setAngle(100);
-        pinky.setAngle(140);
-        indexFinger.flex();
+//        middleFinger.setAngle(80);
+//        ringFinger.setAngle(100);
+//        pinky.setAngle(140);
+//        indexFinger.flex();
     }
 
     public void moveToRPSReady() {
-        indexFinger.flex();
-        ringFinger.flex();
-        middleFinger.flex();
-        pinky.flex();
-    }
-
-    public void countDown() {
-        indexFinger.loose();
-        ringFinger.flex();
-        middleFinger.flex();
-        pinky.flex();
+//        indexFinger.flex();
+//        ringFinger.flex();
+//        middleFinger.flex();
+//        pinky.flex();
     }
 
     public void relax() {
-        indexFinger.loose();
-        ringFinger.loose();
-        middleFinger.loose();
-        pinky.loose();
+//        indexFinger.loose();
+//        ringFinger.loose();
+//        middleFinger.loose();
+//        pinky.loose();
+    }
+
+    public void one() {
+//        indexFinger.loose();
+//        ringFinger.flex();
+//        middleFinger.flex();
+//        pinky.flex();
+    }
+
+    public void three() {
+//        indexFinger.loose();
+//        ringFinger.loose();
+//        middleFinger.loose();
+//        pinky.loose();
     }
 
     public void throwRPSAction(String action) {
@@ -84,14 +89,18 @@ public class HandController {
     }
 
     public void thumbsUp() {
-
+//        moveToRPSReady();
     }
 
     public void thumbsDown() {
-
+//        moveToRPSReady();
     }
 
     public void shutdown() {
-        pwmDriver.shutDown();
+//        pwmDriver.shutDown();
+    }
+
+    public void moveToIdle() {
+
     }
 }
