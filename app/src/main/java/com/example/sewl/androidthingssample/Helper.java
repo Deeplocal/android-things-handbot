@@ -30,10 +30,12 @@ import java.util.PriorityQueue;
 public class Helper {
 
     public static final int IMAGE_SIZE = 128;
-    private static final int IMAGE_MEAN = 0;
-    private static final float IMAGE_STD = 255;
-    private static final String LABELS_FILE = "retrained_labels_0.25_nob.txt";
+    public static final int IMAGE_MEAN = 0;
+    public static final float IMAGE_STD = 255;
+    public static final String LABELS_FILE = "retrained_labels_0.25_nob.txt";
+    public static final String RPS_LABELS_FILE = "retrained_labels_good_rps.txt";
     public static final String MODEL_FILE = "file:///android_asset/retrained_graph_0.25_nob.pb";
+    public static final String RPS_MODEL_FILE = "file:///android_asset/retrained_graph_good_rps.pb";
     public static final String INPUT_NAME = "input:0";
     public static final String OUTPUT_OPERATION = "final_result";
     public static final String OUTPUT_NAME = OUTPUT_OPERATION + ":0";
@@ -41,13 +43,13 @@ public class Helper {
     public static final long[] NETWORK_STRUCTURE = {1, IMAGE_SIZE, IMAGE_SIZE, 3};
     public static final int NUM_CLASSES = 1008;
 
-    private static final int MAX_BEST_RESULTS = 3;
+    public static final int MAX_BEST_RESULTS = 3;
     private static final float RESULT_CONFIDENCE_THRESHOLD = 0.1f;
 
-    public static String[] readLabels(Context context) {
+    public static String[] readLabels(Context context, String labelFile) {
         AssetManager assetManager = context.getAssets();
         ArrayList<String> result = new ArrayList<>();
-        try (InputStream is = assetManager.open(LABELS_FILE);
+        try (InputStream is = assetManager.open(labelFile);
              BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
             String line;
             while ((line = br.readLine()) != null) {

@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import java.util.List;
 
@@ -30,12 +31,15 @@ public class ImageClassificationAsyncTask extends AsyncTask<ImageReader, Void, S
     @Override
     protected String doInBackground(ImageReader... imageReaders) {
         final Bitmap bitmap;
-        try (Image image = imageReaders[0].acquireNextImage()) {
+        try (Image image = imageReaders[0].acquireLatestImage()) {
             bitmap = mImagePreprocessor.preprocessImage(image);
         }
         final List<Classifier.Recognition> results = mTensorFlowClassifier.doRecognize(bitmap);
         if (listener != null) {
             listener.onImageClassificationAvailable(results);
+            if (results.size() > 0) {
+                Log.i("RESULTS", mTensorFlowClassifier.getModelFile() + " : " + results);
+            }
         }
         return null;
     }

@@ -33,7 +33,7 @@ public class CameraHandler {
     public static final int IMAGE_WIDTH = 640;
     public static final int IMAGE_HEIGHT = 480;
 
-    private static final int MAX_IMAGES = 1;
+    private static final int MAX_IMAGES = 2;
     private CameraDevice mCameraDevice;
     private CameraCaptureSession mCaptureSession;
     /**

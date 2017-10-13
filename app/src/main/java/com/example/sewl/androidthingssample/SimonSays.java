@@ -16,6 +16,8 @@ public class SimonSays implements Game {
     private static final Integer SAMPLES_PER_THROW = 3;
     private static final int MAX_ROUNDS = 10;
 
+    private GameStateListener gameStateListener;
+
     private long currentTime;
 
     private String[] ACTIONS = new String[] { "rock", "paper", "scissors", "ok", "spiderman", "three", "loser" };
@@ -38,8 +40,9 @@ public class SimonSays implements Game {
 
     private Map<String, Integer> monitoredActions = new HashMap();
 
-    public SimonSays(HandController handController) {
+    public SimonSays(HandController handController, GameStateListener gameStateListener) {
         this.handController = handController;
+        this.gameStateListener = gameStateListener;
     }
 
     private enum SOUNDS {
@@ -65,7 +68,8 @@ public class SimonSays implements Game {
         WIN,
         WIN_WAIT,
         LOSS,
-        LOSS_WAIT
+        LOSS_WAIT,
+        GAME_OVER
     }
 
     @Override
@@ -117,8 +121,7 @@ public class SimonSays implements Game {
             case DETERMINE_SIGN_CORRECT:
                 Log.i("STATE", "state: DETERMINE_SIGN_CORRECT");
                 String userThrow = getUserThrow();
-//                if (userThrow.equals(signsToMatch.get(0))) {
-                if (true) {
+                if (userThrow.equals(signsToMatch.get(0))) {
                     signsToMatch.remove(0);
                     if (signsToMatch.size() > 0) {
                         currentState = STATES.PLAY_CORRECT_SIGN;
@@ -126,7 +129,6 @@ public class SimonSays implements Game {
                         currentState = STATES.PREPARE_FOR_NEXT_ROUND;
                     }
                 } else {
-//                    currentState = STATES.PLAY_INCORRECT_SIGN;
                     currentState = STATES.PLAY_INCORRECT_SIGN;
                 }
                 break;
@@ -160,18 +162,24 @@ public class SimonSays implements Game {
                 break;
             case WIN_WAIT:
                 Log.i("STATE", "state: WIN_WAIT");
-                currentState = nextStateForWaitState(STATES.IDLE);
+                currentState = nextStateForWaitState(STATES.GAME_OVER);
                 break;
             case LOSS:
                 Log.i("STATE", "state: LOSS");
                 handController.thumbsDown();
                 setTransitionTime();
-                playSound(SOUNDS.WIN);
+                playSound(SOUNDS.LOSS);
                 currentState = STATES.LOSS_WAIT;
                 break;
             case LOSS_WAIT:
                 Log.i("STATE", "state: LOSS_WAIT");
-                currentState = nextStateForWaitState(STATES.IDLE);
+                currentState = nextStateForWaitState(STATES.GAME_OVER);
+                break;
+            case GAME_OVER:
+                if (gameStateListener != null) {
+                    gameStateListener.gameFinished();
+                }
+                currentState = STATES.IDLE;
                 break;
         }
         currentTime = System.currentTimeMillis();
@@ -189,6 +197,12 @@ public class SimonSays implements Game {
             signsToShow.add(action);
             signsToMatch.add(action);
         }
+    }
+
+    @Override
+    public void shutdown() {
+        gameStateListener = null;
+        handController = null;
     }
 
     @Override

@@ -13,6 +13,8 @@ public class RockPaperScissors implements Game {
 
     public static final int WIN_SAMPLES_NEEDED = 3;
 
+    private GameStateListener gameStateListener;
+
     private HandController handController;
 
     private Map<String, Integer> monitoredActions = new HashMap<>();
@@ -31,8 +33,9 @@ public class RockPaperScissors implements Game {
 
     private static final long ANIMATION_WAIT_TIME = 3000;
 
-    public RockPaperScissors(HandController handController) {
+    public RockPaperScissors(HandController handController, GameStateListener gameStateListener) {
         this.handController = handController;
+        this.gameStateListener = gameStateListener;
     }
 
     private enum STATES {
@@ -49,8 +52,9 @@ public class RockPaperScissors implements Game {
         LOSS,
         WAIT_FOR_NEW_ROUND,
         WAIT_FOR_NEW_GAME,
-        RETURN_TO_IDLE,
-        RETURN_TO_IDLE_WAIT
+        END_GAME,
+        END_GAME_WAIT,
+        GAME_OVER
     }
 
     private enum GAME_RESULTS {
@@ -60,6 +64,12 @@ public class RockPaperScissors implements Game {
     }
 
     private STATES currentState = STATES.IDLE;
+
+    @Override
+    public void shutdown() {
+        handController = null;
+        gameStateListener = null;
+    }
 
     @Override
     public void start() {
@@ -130,29 +140,34 @@ public class RockPaperScissors implements Game {
                 currentState = STATES.WAIT_FOR_NEW_ROUND;
             }
         } else if (currentState == STATES.WIN) {
-            Log.i("STATE", "STATES.WIN");
+            Log.i("RPS_STATE", "STATES.WIN");
             handController.thumbsUp();
             setTransitionTime();
             currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.LOSS) {
-            Log.i("STATE", "STATES.LOSS");
+            Log.i("RPS_STATE", "STATES.LOSS");
             handController.thumbsDown();
             setTransitionTime();
             currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.WAIT_FOR_NEW_ROUND) {
-            Log.i("STATE", "STATES.WAIT_FOR_NEW_ROUND");
+            Log.i("RPS_STATE", "STATES.WAIT_FOR_NEW_ROUND");
             currentState = nextStateForWaitState(STATES.INITIATE);
         } else if (currentState == STATES.WAIT_FOR_NEW_GAME) {
-            Log.i("STATE", "STATES.WAIT_FOR_NEW_GAME");
-            currentState = nextStateForWaitState(STATES.RETURN_TO_IDLE);
-        } else if (currentState == STATES.RETURN_TO_IDLE) {
-            Log.i("STATE", "STATES.RETURN_TO_IDLE");
+            Log.i("RPS_STATE", "STATES.WAIT_FOR_NEW_GAME");
+            currentState = nextStateForWaitState(STATES.END_GAME);
+        } else if (currentState == STATES.END_GAME) {
+            Log.i("RPS_STATE", "STATES.END_GAME");
             handController.moveToIdle();
             setTransitionTime();
-            currentState = STATES.RETURN_TO_IDLE_WAIT;
-        } else if (currentState == STATES.RETURN_TO_IDLE_WAIT) {
-            Log.i("STATE", "STATES.RETURN_TO_IDLE_WAIT");
-            currentState = nextStateForWaitState(STATES.IDLE);
+            currentState = STATES.END_GAME_WAIT;
+        } else if (currentState == STATES.END_GAME_WAIT) {
+            Log.i("RPS_STATE", "STATES.END_GAME_WAIT");
+            currentState = nextStateForWaitState(STATES.GAME_OVER);
+        } else if (currentState == STATES.GAME_OVER) {
+            if (gameStateListener != null) {
+                gameStateListener.gameFinished();
+            }
+            currentState = STATES.IDLE;
         }
     }
 

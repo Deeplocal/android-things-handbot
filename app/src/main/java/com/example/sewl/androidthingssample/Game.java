@@ -9,4 +9,5 @@ public interface Game {
     void run(String action);
     void start();
     void stop();
+    void shutdown();
 }

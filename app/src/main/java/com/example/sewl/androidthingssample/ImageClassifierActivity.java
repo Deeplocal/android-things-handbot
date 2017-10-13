@@ -20,6 +20,8 @@ public class ImageClassifierActivity extends Activity
 
     private TensorFlowImageClassifier tensorFlowClassifier;
 
+    private TensorFlowImageClassifier rpsTensorFlowClassifier;
+
     private HandlerThread mBackgroundThread;
 
     private Handler mBackgroundHandler;
@@ -28,7 +30,7 @@ public class ImageClassifierActivity extends Activity
 
     private HandController handController;
 
-    private Game currentGame;
+    private StandbyController standbyController;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -44,6 +46,9 @@ public class ImageClassifierActivity extends Activity
         mBackgroundHandler.post(mInitializeOnBackground);
         handController = new HandController();
         handController.init();
+        standbyController = new StandbyController();
+        standbyController.init(handController);
+//        handController.test();
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {
@@ -55,9 +60,8 @@ public class ImageClassifierActivity extends Activity
                     ImageClassifierActivity.this, mBackgroundHandler,
                     ImageClassifierActivity.this);
             mCameraHandler.setCameraReadyListener(ImageClassifierActivity.this);
-            tensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this);
-            currentGame = new SimonSays(handController);
-            currentGame.start();
+            tensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.MODEL_FILE, Helper.LABELS_FILE);
+            rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.RPS_MODEL_FILE, Helper.RPS_LABELS_FILE);
         }
     };
 
@@ -66,18 +70,18 @@ public class ImageClassifierActivity extends Activity
         if (classifications.size() > 0) {
             Log.i("ACTION", "action: " + classifications);
 //            handController.handleAction(classifications.get(0).getTitle());
-            if (currentGame != null) {
-                currentGame.run(classifications.get(0).getTitle());
+            if (standbyController != null) {
+                standbyController.run(classifications.get(0).getTitle());
             }
         }
     }
 
     @Override
     public void onImageAvailable(ImageReader reader) {
-//        mCameraHandler.takePicture();
-//        currentGame.run("rock");
+//        new ImageClassificationAsyncTask(
+//                imagePreprocessor, tensorFlowClassifier, this).execute(reader);
         new ImageClassificationAsyncTask(
-                imagePreprocessor, tensorFlowClassifier, this).execute(reader);
+                imagePreprocessor, rpsTensorFlowClassifier, this).execute(reader);
     }
 
     @Override

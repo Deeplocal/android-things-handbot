@@ -15,6 +15,8 @@ public class TensorFlowImageClassifier implements Classifier {
 
     private static final String TAG = "TFImageClassifier";
 
+    private final String modelFile;
+
     private String[] labels;
 
     // Pre-allocated buffers.
@@ -29,11 +31,12 @@ public class TensorFlowImageClassifier implements Classifier {
      *
      * @param context The activity that instantiates this.
      */
-    public TensorFlowImageClassifier(Context context) {
+    public TensorFlowImageClassifier(Context context, String modelFile, String labelFile) {
         this.inferenceInterface = new TensorFlowInferenceInterface(
                 context.getAssets(),
-                Helper.MODEL_FILE);
-        this.labels = Helper.readLabels(context);
+                modelFile);
+        this.labels = Helper.readLabels(context, labelFile);
+        this.modelFile = modelFile;
 
         // Pre-allocate buffers.
         intValues = new int[Helper.IMAGE_SIZE * Helper.IMAGE_SIZE];
@@ -70,5 +73,9 @@ public class TensorFlowImageClassifier implements Classifier {
 
         // Get the results with the highest confidence and map them to their labels
         return Helper.getBestResults(outputs, labels);
+    }
+
+    public String getModelFile() {
+        return modelFile;
     }
 }
