@@ -127,9 +127,7 @@ public class CameraHandler {
             mCameraDevice = null;
         }
     };
-    /**
-     * Begin a still image capture
-     */
+
     public void takePicture() {
         if (mCameraDevice == null) {
             Log.w(TAG, "Cannot capture image. Camera not initialized.");
@@ -147,9 +145,7 @@ public class CameraHandler {
             Log.d(TAG, "access exception while preparing pic", cae);
         }
     }
-    /**
-     * Callback handling session state changes
-     */
+
     private CameraCaptureSession.StateCallback mSessionCallback =
             new CameraCaptureSession.StateCallback() {
                 @Override
@@ -166,22 +162,17 @@ public class CameraHandler {
                     Log.w(TAG, "Failed to configure camera");
                 }
             };
-    /**
-     * Execute a new capture request within the active session
-     */
+
     private void triggerImageCapture() {
         try {
             final CaptureRequest.Builder captureBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureBuilder.addTarget(mImageReader.getSurface());
-//            captureBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
             captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
             Log.d(TAG, "Capture request created.");
             captureBuilder.set(
                     CaptureRequest.CONTROL_AF_TRIGGER,
                     CameraMetadata.CONTROL_AF_TRIGGER_START);
-//            mCaptureSession.capture(captureBuilder.build(), mCaptureCallback, null);
-//            mCaptureSession.setRepeatingRequest(captureBuilder.build(), mCaptureCallback, backgroundHandler);
             mCaptureSession.setRepeatingRequest(captureBuilder.build(), new CameraCaptureSession.CaptureCallback() {
                 @Override
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
@@ -192,9 +183,7 @@ public class CameraHandler {
             Log.d(TAG, "camera capture exception");
         }
     }
-    /**
-     * Callback handling capture session events
-     */
+
     private final CameraCaptureSession.CaptureCallback mCaptureCallback =
             new CameraCaptureSession.CaptureCallback() {
                 @Override
@@ -224,9 +213,6 @@ public class CameraHandler {
         }
     }
 
-    /**
-     * Close the camera resources
-     */
     public void shutDown() {
         closeCaptureSession();
         if (mCameraDevice != null) {

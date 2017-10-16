@@ -17,6 +17,8 @@ public class RockPaperScissors implements Game {
 
     private HandController handController;
 
+    private LightRingControl lightRingControl;
+
     private Map<String, Integer> monitoredActions = new HashMap<>();
 
     private int totalRecordedActions;
@@ -33,9 +35,10 @@ public class RockPaperScissors implements Game {
 
     private static final long ANIMATION_WAIT_TIME = 3000;
 
-    public RockPaperScissors(HandController handController, GameStateListener gameStateListener) {
+    public RockPaperScissors(HandController handController, GameStateListener gameStateListener, LightRingControl lightRingControl) {
         this.handController = handController;
         this.gameStateListener = gameStateListener;
+        this.lightRingControl = lightRingControl;
     }
 
     private enum STATES {
@@ -139,6 +142,7 @@ public class RockPaperScissors implements Game {
                 setTransitionTime();
                 currentState = STATES.WAIT_FOR_NEW_ROUND;
             }
+            lightRingControl.setScore(roundWins, roundLosses);
         } else if (currentState == STATES.WIN) {
             Log.i("RPS_STATE", "STATES.WIN");
             handController.thumbsUp();
@@ -212,6 +216,7 @@ public class RockPaperScissors implements Game {
     private void resetGame() {
         roundLosses = 0;
         roundWins = 0;
+        lightRingControl.setScore(0, 0);
     }
 
     private void setTransitionTime() {

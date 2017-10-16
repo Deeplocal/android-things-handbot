@@ -1,6 +1,8 @@
 package com.example.sewl.androidthingssample;
 
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Message;
 
 import com.google.android.things.contrib.driver.apa102.Apa102;
 
@@ -13,11 +15,19 @@ import java.io.IOException;
 public class LightRingControl {
 
     private static final int NUMBER_OF_LEDS = 4;
-    private static final int PULSE_DELAY    = 6;
+    private static final int PULSE_DELAY    = 8;
+
+    private final Handler localHandler;
 
     private Thread ledThread;
 
     private Apa102 mLedstrip;
+
+    private int totalPulsesToRun = 0;
+
+    public LightRingControl(Handler localHandler) {
+        this.localHandler = localHandler;
+    }
 
     public void init() {
         try {
@@ -41,15 +51,19 @@ public class LightRingControl {
         }
     }
 
-    public void runPulse() {
+    public void runPulse(int pulses) {
+        totalPulsesToRun = pulses;
         ledThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 int numberOfRuns = 0;
-                while(numberOfRuns < 10) {
+                while(numberOfRuns < totalPulsesToRun) {
                     illuminate();
                     deluminate();
                     numberOfRuns++;
+                    Message msg = new Message();
+                    msg.obj = "RUNS: " + numberOfRuns;
+                    localHandler.sendMessage(msg);
                 }
                 stopLedThread();
             };

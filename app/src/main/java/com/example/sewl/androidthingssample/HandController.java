@@ -62,31 +62,31 @@ public class HandController {
     }
 
     public void ok() {
-        middleFinger.setAngle(80);
-        ringFinger.setAngle(100);
-        pinky.setAngle(140);
-        indexFinger.flex();
+//        middleFinger.setAngle(80);
+//        ringFinger.setAngle(100);
+//        pinky.setAngle(140);
+//        indexFinger.flex();
     }
 
     public void moveToRPSReady() {
-        indexFinger.flex();
-        ringFinger.flex();
-        middleFinger.flex();
-        pinky.flex();
+//        indexFinger.flex();
+//        ringFinger.flex();
+//        middleFinger.flex();
+//        pinky.flex();
     }
 
     public void relax() {
-        indexFinger.loose();
-        ringFinger.loose();
-        middleFinger.loose();
-        pinky.loose();
+//        indexFinger.loose();
+//        ringFinger.loose();
+//        middleFinger.loose();
+//        pinky.loose();
     }
 
     public void one() {
-        indexFinger.loose();
-        middleFinger.flex();
-        ringFinger.flex();
-        pinky.flex();
+//        indexFinger.loose();
+//        middleFinger.flex();
+//        ringFinger.flex();
+//        pinky.flex();
     }
 
     public void two() {

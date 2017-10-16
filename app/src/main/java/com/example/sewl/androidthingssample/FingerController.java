@@ -41,7 +41,6 @@ public class FingerController {
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {
             if (currentAngle != angle) {
-                Log.i("SET", "channel: " + channel + " " + angle);
                 servoDriver.setAngle(channel, angle);
             }
             this.currentAngle = angle;

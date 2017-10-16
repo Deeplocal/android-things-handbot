@@ -5,6 +5,7 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Message;
 import android.util.Log;
 
 import com.google.android.things.pio.PeripheralManagerService;
@@ -31,32 +32,37 @@ public class ImageClassifierActivity extends Activity
 
     private Handler mBackgroundHandler;
 
-    private long currentTime;
-
     private HandController handController;
 
     private StandbyController standbyController;
 
-    private int mFrame = 0;
+    private Handler localHandler = new Handler();
 
-    private Handler mHandler = new Handler();
     private HandlerThread mPioThread;
 
     private static final int FRAME_DELAY_MS = 100; // 10fps
 
     private LightRingControl lightRingControl;
 
+    static class LocalHandler extends Handler {
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.i(this.getClass().getName(), "Message received: " + (String) msg.obj);
+        }
+    }
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         init();
-        mPioThread = new HandlerThread("pioThread");
-        mPioThread.start();
 
-        mHandler = new Handler(mPioThread.getLooper());
+        localHandler = new LocalHandler();
 
-        lightRingControl = new LightRingControl();
+        lightRingControl = new LightRingControl(localHandler);
+        standbyController = new StandbyController();
+        standbyController.init(handController, lightRingControl);
 
         testApa102();
     }
@@ -70,7 +76,7 @@ public class ImageClassifierActivity extends Activity
             Log.i(TAG, "List of available devices: " + deviceList);
         }
         lightRingControl.init();
-//        lightRingControl.runPulse();
+//        lightRingControl.runPulse(5);
 //        lightRingControl.setScore(2, 1);
     }
 
