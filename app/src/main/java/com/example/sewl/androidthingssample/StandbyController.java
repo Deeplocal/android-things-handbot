@@ -15,11 +15,7 @@ import java.util.Map;
 public class StandbyController implements GameStateListener {
 
     private static final Integer SAMPLES_PER_ACTION = 3;
-    private static final Integer SAMPLES_TO_START_GAME = 5;
-
-    private RockPaperScissors rockPaperScissors;
-
-    private SimonSays simonSays;
+    private static final Integer SAMPLES_TO_START_GAME = 4;
 
     private HandController handController;
 
@@ -33,7 +29,7 @@ public class StandbyController implements GameStateListener {
 
     private int consecutiveMirroredActions;
 
-    private List<String> GAME_START_ACTIONS = Lists.newArrayList("rock", "paper");
+    private List<String> GAME_START_ACTIONS = Lists.newArrayList("rock", "scissors");
 
     private enum STATES {
         IDLE,

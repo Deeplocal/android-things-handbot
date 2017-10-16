@@ -186,7 +186,6 @@ public class CameraHandler {
                 @Override
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
                     super.onCaptureCompleted(session, request, result);
-                    Log.i("COMPLETE", "complete");
                 }
             }, null);
         } catch (CameraAccessException cae) {

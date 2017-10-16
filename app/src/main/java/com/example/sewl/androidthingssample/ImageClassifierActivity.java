@@ -7,13 +7,18 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.util.Log;
 
+import com.google.android.things.pio.PeripheralManagerService;
+
 import java.util.List;
+
+import static android.content.ContentValues.TAG;
 
 public class ImageClassifierActivity extends Activity
                                      implements ImageReader.OnImageAvailableListener,
                                                 CameraHandler.CameraReadyListener,
                                                 ImageClassificationAsyncTask.ClassificationAvailableListener {
 
+    private static final int NUMBER_OF_LEDS = 4;
     private ImagePreprocessor imagePreprocessor;
 
     private CameraHandler mCameraHandler;
@@ -32,11 +37,41 @@ public class ImageClassifierActivity extends Activity
 
     private StandbyController standbyController;
 
+    private int mFrame = 0;
+
+    private Handler mHandler = new Handler();
+    private HandlerThread mPioThread;
+
+    private static final int FRAME_DELAY_MS = 100; // 10fps
+
+    private LightRingControl lightRingControl;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
         init();
+        mPioThread = new HandlerThread("pioThread");
+        mPioThread.start();
+
+        mHandler = new Handler(mPioThread.getLooper());
+
+        lightRingControl = new LightRingControl();
+
+        testApa102();
+    }
+
+    private void testApa102() {
+        PeripheralManagerService manager = new PeripheralManagerService();
+        List<String> deviceList = manager.getSpiBusList();
+        if (deviceList.isEmpty()) {
+            Log.i(TAG, "No SPI bus available on this device.");
+        } else {
+            Log.i(TAG, "List of available devices: " + deviceList);
+        }
+        lightRingControl.init();
+//        lightRingControl.runPulse();
+//        lightRingControl.setScore(2, 1);
     }
 
     private void init() {
@@ -45,10 +80,7 @@ public class ImageClassifierActivity extends Activity
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
         mBackgroundHandler.post(mInitializeOnBackground);
         handController = new HandController();
-        handController.init();
-        standbyController = new StandbyController();
-        standbyController.init(handController);
-//        handController.test();
+//        handController.init();
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {
@@ -69,9 +101,8 @@ public class ImageClassifierActivity extends Activity
     public void onImageClassificationAvailable(List<Classifier.Recognition> classifications) {
         if (classifications.size() > 0) {
             Log.i("ACTION", "action: " + classifications);
-//            handController.handleAction(classifications.get(0).getTitle());
             if (standbyController != null) {
-                standbyController.run(classifications.get(0).getTitle());
+//                standbyController.run(classifications.get(0).getTitle());
             }
         }
     }
