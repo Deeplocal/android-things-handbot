@@ -3,8 +3,6 @@ package com.example.sewl.androidthingssample;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.Image;
-import android.support.v7.widget.ThemedSpinnerAdapter;
-import android.util.Log;
 
 import junit.framework.Assert;
 
@@ -17,8 +15,6 @@ import java.nio.ByteBuffer;
  */
 
 public class ImagePreprocessor {
-
-    private static final boolean SAVE_PREVIEW_BITMAP = false;
 
     private Bitmap rgbFrameBitmap;
     private Bitmap croppedBitmap;
@@ -46,10 +42,6 @@ public class ImagePreprocessor {
 
         image.close();
 
-        // For debugging
-        if (SAVE_PREVIEW_BITMAP) {
-            Helper.saveBitmap(croppedBitmap);
-        }
         return croppedBitmap;
     }
 

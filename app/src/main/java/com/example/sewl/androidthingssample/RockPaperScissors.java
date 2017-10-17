@@ -168,6 +168,7 @@ public class RockPaperScissors implements Game {
             Log.i("RPS_STATE", "STATES.END_GAME_WAIT");
             currentState = nextStateForWaitState(STATES.GAME_OVER);
         } else if (currentState == STATES.GAME_OVER) {
+            lightRingControl.setScore(0, 0);
             if (gameStateListener != null) {
                 gameStateListener.gameFinished();
             }

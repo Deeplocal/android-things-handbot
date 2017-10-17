@@ -53,7 +53,7 @@ public class ImageClassifierActivity extends Activity
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
         mBackgroundHandler.post(mInitializeOnBackground);
         handController = new HandController();
-//        handController.init();
+        handController.init();
         rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.RPS_MODEL_FILE, Helper.RPS_LABELS_FILE);
         standbyController.init(handController, lightRingControl, soundController);
         imageClassificationThread = new ImageClassificationThread(rpsTensorFlowClassifier, imagePreprocessor, standbyController);

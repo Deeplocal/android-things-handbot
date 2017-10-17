@@ -27,8 +27,48 @@ public class LightRingControl {
     public void init() {
         try {
             mLedstrip = new Apa102("SPI3.0", Apa102.Mode.BGR, Apa102.Direction.NORMAL);
-            mLedstrip.setBrightness(1);
+            mLedstrip.setBrightness(3);
         } catch (IOException e) { }
+    }
+
+    public void runSwirl(int pulsesToRun) {
+        this.totalPulsesToRun = pulsesToRun;
+        ledThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int numberOfRuns = 0;
+                while(numberOfRuns < totalPulsesToRun) {
+                    swirl();
+                    numberOfRuns++;
+                }
+                stopLedThread();
+            };
+        });
+        ledThread.start();
+    }
+
+    private void swirl() {
+        int[] colors = new int[] {0, 0, 0, 0};
+        for (int i = 0; i <= 720; i+=8) {
+            float t = i/360.0f;
+            for (int j = 0; j < NUMBER_OF_LEDS; j++) {
+                float offset = (float)j / (float) NUMBER_OF_LEDS;
+                // 2*offset for slower ring
+                double lightness = 0.3f * Math.sin(t * Math.PI - offset);
+                int color = Color.HSVToColor(new float[]{ 200.0f, 1.0f, (float) lightness});
+                colors[j] = color;
+            }
+            try {
+                mLedstrip.write(colors);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                Thread.sleep(PULSE_DELAY);
+            } catch (InterruptedException e) {
+            }
+        }
     }
 
     public void setScore(int me, int them) {

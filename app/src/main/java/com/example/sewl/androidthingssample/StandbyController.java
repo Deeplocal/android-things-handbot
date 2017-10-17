@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class StandbyController implements GameStateListener {
 
-    private static final Integer SAMPLES_PER_ACTION = 3;
+    private static final Integer SAMPLES_PER_ACTION = 2;
     private static final Integer SAMPLES_TO_START_GAME = 4;
 
     private HandController handController;
@@ -47,6 +47,7 @@ public class StandbyController implements GameStateListener {
         this.lightRingControl = lightRingControl;
         this.soundController = soundController;
         this.currentState = STATES.MIRROR;
+        this.lightRingControl.runSwirl(5);
     }
 
     public void run(String action) {
@@ -81,6 +82,7 @@ public class StandbyController implements GameStateListener {
             currentState = STATES.ROCK_PAPER_SCISSORS;
             currentGame = new RockPaperScissors(handController, this, lightRingControl);
             currentGame.start();
+//            lightRingControl.runPulse(1);
         } else if ("scissors".equals(lastMirroredAction)) {
             currentState = STATES.MATCHING;
             currentGame = new SimonSays(handController, this, soundController);
