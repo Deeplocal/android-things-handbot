@@ -1,8 +1,6 @@
 package com.example.sewl.androidthingssample;
 
 import android.graphics.Color;
-import android.os.Handler;
-import android.os.Message;
 
 import com.google.android.things.contrib.driver.apa102.Apa102;
 
@@ -15,9 +13,7 @@ import java.io.IOException;
 public class LightRingControl {
 
     private static final int NUMBER_OF_LEDS = 4;
-    private static final int PULSE_DELAY    = 8;
-
-    private final Handler localHandler;
+    private static final int PULSE_DELAY    = 10;
 
     private Thread ledThread;
 
@@ -25,8 +21,7 @@ public class LightRingControl {
 
     private int totalPulsesToRun = 0;
 
-    public LightRingControl(Handler localHandler) {
-        this.localHandler = localHandler;
+    public LightRingControl() {
     }
 
     public void init() {
@@ -61,9 +56,6 @@ public class LightRingControl {
                     illuminate();
                     deluminate();
                     numberOfRuns++;
-                    Message msg = new Message();
-                    msg.obj = "RUNS: " + numberOfRuns;
-                    localHandler.sendMessage(msg);
                 }
                 stopLedThread();
             };
@@ -73,7 +65,7 @@ public class LightRingControl {
 
     private void illuminate() {
         int[] colors = new int[] {0, 0, 0, 0};
-        for (int i = 0; i < 150; i++) {
+        for (int i = 0; i < 170; i+=2) {
             float t = i/360.0f;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 int color = Color.HSVToColor(new float[]{ 200.0f, 1.0f, t});
@@ -94,7 +86,7 @@ public class LightRingControl {
 
     private void deluminate() {
         int[] colors = new int[] {0, 0, 0, 0};
-        for (int i = 150; i >= 0; i--) {
+        for (int i = 170; i >= 0; i-=2) {
             float t = i/360.0f;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 int color = Color.HSVToColor(new float[]{ 200.0f, 1.0f, t});

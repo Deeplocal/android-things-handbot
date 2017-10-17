@@ -33,6 +33,8 @@ public class StandbyController implements GameStateListener {
 
     private LightRingControl lightRingControl;
 
+    private SoundController soundController;
+
     private enum STATES {
         IDLE,
         ROCK_PAPER_SCISSORS,
@@ -40,9 +42,10 @@ public class StandbyController implements GameStateListener {
         MIRROR;
     }
 
-    public void init(HandController handController, LightRingControl lightRingControl) {
+    public void init(HandController handController, LightRingControl lightRingControl, SoundController soundController) {
         this.handController = handController;
         this.lightRingControl = lightRingControl;
+        this.soundController = soundController;
         this.currentState = STATES.MIRROR;
     }
 
@@ -80,7 +83,7 @@ public class StandbyController implements GameStateListener {
             currentGame.start();
         } else if ("scissors".equals(lastMirroredAction)) {
             currentState = STATES.MATCHING;
-            currentGame = new SimonSays(handController, this);
+            currentGame = new SimonSays(handController, this, soundController);
             currentGame.start();
         }
         consecutiveMirroredActions = 0;

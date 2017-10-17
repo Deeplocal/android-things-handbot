@@ -33,9 +33,9 @@ public class Helper {
     public static final int IMAGE_MEAN = 0;
     public static final float IMAGE_STD = 255;
     public static final String LABELS_FILE = "retrained_labels_0.25_nob.txt";
-    public static final String RPS_LABELS_FILE = "retrained_labels_good_rps.txt";
+    public static final String RPS_LABELS_FILE = "retrained_labels_only_rps.txt";
     public static final String MODEL_FILE = "file:///android_asset/retrained_graph_0.25_nob.pb";
-    public static final String RPS_MODEL_FILE = "file:///android_asset/retrained_graph_good_rps.pb";
+    public static final String RPS_MODEL_FILE = "file:///android_asset/retrained_graph_only_rps.pb";
     public static final String INPUT_NAME = "input:0";
     public static final String OUTPUT_OPERATION = "final_result";
     public static final String OUTPUT_NAME = OUTPUT_OPERATION + ":0";
