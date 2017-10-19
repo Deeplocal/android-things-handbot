@@ -42,8 +42,7 @@ public class ImageClassificationThread extends Thread {
                     classifyImage((Bitmap) msg.obj);
                 }
             }
-        };
-        Looper.loop();
+        };        Looper.loop();
 
         Looper.myLooper().quit();
     }

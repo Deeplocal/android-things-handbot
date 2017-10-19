@@ -8,14 +8,12 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.util.Size;
 
 import java.util.Collections;
 
@@ -50,15 +48,15 @@ public class CameraHandler {
     // Lazy-loaded singleton, so only one instance of the camera is created.
     private CameraHandler() {
     }
+
     private static class InstanceHolder {
         private static CameraHandler mCamera = new CameraHandler();
     }
+
     public static CameraHandler getInstance() {
         return InstanceHolder.mCamera;
     }
-    /**
-     * Initialize the camera device
-     */
+
     public void initializeCamera(Context context,
                                  Handler backgroundHandler,
                                  ImageReader.OnImageAvailableListener imageAvailableListener) {
@@ -90,7 +88,7 @@ public class CameraHandler {
                 JPEG, MAX_IMAGES);
         mImageReader.setOnImageAvailableListener(
                 imageAvailableListener, backgroundHandler);
-        // Open the camera resource
+
         try {
             manager.openCamera(id, mStateCallback, backgroundHandler);
         } catch (CameraAccessException cae) {
@@ -133,7 +131,7 @@ public class CameraHandler {
             Log.w(TAG, "Cannot capture image. Camera not initialized.");
             return;
         }
-        // Here, we create a CameraCaptureSession for capturing still images.
+
         try {
             mCameraDevice.createCaptureSession(
                     Collections.singletonList(mImageReader.getSurface()),
@@ -184,24 +182,6 @@ public class CameraHandler {
         }
     }
 
-    private final CameraCaptureSession.CaptureCallback mCaptureCallback =
-            new CameraCaptureSession.CaptureCallback() {
-                @Override
-                public void onCaptureProgressed(@NonNull CameraCaptureSession session,
-                                                @NonNull CaptureRequest request,
-                                                @NonNull CaptureResult partialResult) {
-                    Log.d(TAG, "Partial result");
-                }
-                @Override
-                public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                                               @NonNull CaptureRequest request,
-                                               @NonNull TotalCaptureResult result) {
-                    session.close();
-                    mCaptureSession = null;
-                    Log.d(TAG, "CaptureSession closed");
-                }
-            };
-
     private void closeCaptureSession() {
         if (mCaptureSession != null) {
             try {
@@ -217,43 +197,6 @@ public class CameraHandler {
         closeCaptureSession();
         if (mCameraDevice != null) {
             mCameraDevice.close();
-        }
-    }
-
-    /**
-     * Helpful debugging method:  Dump all supported camera formats to log.  You don't need to run
-     * this for normal operation, but it's very helpful when porting this code to different
-     * hardware.
-     */
-    public static void dumpFormatInfo(Context context) {
-        CameraManager manager = (CameraManager) context.getSystemService(CAMERA_SERVICE);
-        String[] camIds = {};
-        try {
-            camIds = manager.getCameraIdList();
-        } catch (CameraAccessException e) {
-            Log.d(TAG, "Cam access exception getting IDs");
-        }
-        if (camIds.length < 1) {
-            Log.d(TAG, "No cameras found");
-        }
-        String id = camIds[0];
-        Log.d(TAG, "Using camera id " + id);
-        try {
-            CameraCharacteristics characteristics = manager.getCameraCharacteristics(id);
-            StreamConfigurationMap configs = characteristics.get(
-                    CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            for (int format : configs.getOutputFormats()) {
-                Log.d(TAG, "Getting sizes for format: " + format);
-                for (Size s : configs.getOutputSizes(format)) {
-                    Log.d(TAG, "\t" + s.toString());
-                }
-            }
-            int[] effects = characteristics.get(CameraCharacteristics.CONTROL_AVAILABLE_EFFECTS);
-            for (int effect : effects) {
-                Log.d(TAG, "Effect available: " + effect);
-            }
-        } catch (CameraAccessException e) {
-            Log.d(TAG, "Cam access exception getting characteristics.");
         }
     }
 

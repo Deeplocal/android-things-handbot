@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class StandbyController implements GameStateListener {
 
-    private static final Integer SAMPLES_PER_ACTION = 2;
+    private static final Integer SAMPLES_PER_ACTION = 3;
     private static final Integer SAMPLES_TO_START_GAME = 4;
 
     private HandController handController;
@@ -131,7 +131,7 @@ public class StandbyController implements GameStateListener {
 
     private void logAction(String seenAction) {
         if (!monitoredActions.containsKey(seenAction)) {
-            monitoredActions.put(seenAction, 0);
+            monitoredActions.put(   seenAction, 0);
         }
         Integer oldValue = monitoredActions.get(seenAction);
         monitoredActions.put(seenAction, oldValue + 1);

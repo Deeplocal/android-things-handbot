@@ -55,7 +55,7 @@ public class LightRingControl {
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 float offset = (float)j / (float) NUMBER_OF_LEDS;
                 // 2*offset for slower ring
-                double lightness = 0.3f * Math.sin(t * Math.PI - offset);
+                double lightness = 0.3f * Math.sin(t * Math.PI - 2*offset);
                 int color = Color.HSVToColor(new float[]{ 200.0f, 1.0f, (float) lightness});
                 colors[j] = color;
             }
