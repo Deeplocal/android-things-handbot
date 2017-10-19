@@ -1,13 +1,14 @@
 package com.example.sewl.androidthingssample;
 
 import android.os.Handler;
-import android.util.Log;
 
 /**
  * Created by mderrick on 10/10/17.
  */
 
 public class FingerController {
+
+    public static final int SERVO_OFF_VALUE = 0;
 
     private static int FLEXED_ANGLE = 180;
     private static int LOOSE_ANGLE  = 0;
@@ -19,6 +20,8 @@ public class FingerController {
     private MultiChannelServoDriver servoDriver;
 
     private Handler settleServoHandler = new Handler();
+
+    private Thread interpolationThread;
 
     public FingerController(int channel, MultiChannelServoDriver servoDriver) {
         this.channel = channel;
@@ -38,23 +41,40 @@ public class FingerController {
     }
 
     public void setAngle(int angle) {
+        setAngle(angle, true);
+    }
+
+    public void setAngle(int angle, boolean settle) {
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {
             if (currentAngle != angle) {
+                int diff = Math.abs(angle - currentAngle);
                 servoDriver.setAngle(channel, angle);
+                this.currentAngle = angle;
+                if (settle) {
+                    settleServo(diff);
+                }
             }
-            this.currentAngle = angle;
-            settleServo();
         }
     }
 
-    private void settleServo() {
+    private void settleServo(int angleMoved) {
         settleServoHandler.removeCallbacksAndMessages(null);
+        long relaxTime = (long) (((float) angleMoved / 180.0f) * 500.);
         settleServoHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                servoDriver.setPWM(channel, 0, 0);
+                servoDriver.setPWM(channel, 0, SERVO_OFF_VALUE);
             }
-        }, 1000);
+        }, relaxTime);
+    }
+
+    private void interpolate() {
+        interpolationThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+            }
+        });
+        interpolationThread.start();
     }
 }

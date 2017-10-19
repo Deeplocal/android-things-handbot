@@ -8,7 +8,7 @@ import android.os.Handler;
 
 public class ForearmController {
 
-    private static int FLEXED_ANGLE = 180;
+    private static int FLEXED_ANGLE = 90;
     private static int LOOSE_ANGLE  = 0;
 
     private int channel1;

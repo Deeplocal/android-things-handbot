@@ -1,8 +1,6 @@
 package com.example.sewl.androidthingssample;
 
 import android.graphics.Bitmap;
-import android.media.Image;
-import android.media.ImageReader;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -20,15 +18,17 @@ public class ImageClassificationThread extends Thread {
 
     private TensorFlowImageClassifier imageClassifier;
 
-    private ImagePreprocessor imagePreprocessor;
-
     private Handler handler;
 
-    public ImageClassificationThread(TensorFlowImageClassifier imageClassifier, ImagePreprocessor imagePreprocessor, StandbyController standbyController) {
+    private long currentTime;
+
+    private boolean classifyingImage;
+
+    public ImageClassificationThread(TensorFlowImageClassifier imageClassifier, StandbyController standbyController) {
         super("imageClassificationThread");
         this.imageClassifier = imageClassifier;
-        this.imagePreprocessor = imagePreprocessor;
         this.standbyController = standbyController;
+        currentTime = System.currentTimeMillis();
     }
 
     @Override
@@ -38,7 +38,9 @@ public class ImageClassificationThread extends Thread {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                classifyImage((ImageReader) msg.obj);
+                if (!classifyingImage) {
+                    classifyImage((Bitmap) msg.obj);
+                }
             }
         };
         Looper.loop();
@@ -46,16 +48,16 @@ public class ImageClassificationThread extends Thread {
         Looper.myLooper().quit();
     }
 
-    private void classifyImage(ImageReader reader) {
-        final Bitmap bitmap;
-        try (Image image = reader.acquireLatestImage()) {
-            bitmap = imagePreprocessor.preprocessImage(image);
-        }
+    public void classifyImage(Bitmap bitmap) {
+        Log.i("TOOK", "overall: " + (System.currentTimeMillis() - currentTime));
+        currentTime = System.currentTimeMillis();
+
         final List<Classifier.Recognition> results = imageClassifier.doRecognize(bitmap);
         if (results.size() > 0) {
             standbyController.run(results.get(0).getTitle());
             Log.i("RESULTS", imageClassifier.getModelFile() + " : " + results);
         }
+        classifyingImage = false;
     }
 
     public Handler getHandler() {

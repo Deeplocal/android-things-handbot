@@ -1,5 +1,7 @@
 package com.example.sewl.androidthingssample;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -12,6 +14,8 @@ import java.util.Map;
 public class RockPaperScissors implements Game {
 
     public static final int WIN_SAMPLES_NEEDED = 3;
+    private static final long THROW_WAIT_TIME = 800;
+    private static final long WAIT_FOR_NEW_ROUND_DELAY = 800;
 
     private GameStateListener gameStateListener;
 
@@ -47,6 +51,7 @@ public class RockPaperScissors implements Game {
         INITIATE_WAIT,
         COUNTDOWN,
         COUNTDOWN_WAIT,
+        COUNTDOWN_DECREMENT,
         THROW,
         THROW_WAIT,
         MONITOR,
@@ -92,24 +97,70 @@ public class RockPaperScissors implements Game {
         } else if (currentState == STATES.INITIATE) {
             Log.i("STATE", "STATES.INITIATE");
             resetRound();
-            setTransitionTime();
-            handController.moveToRPSReady();
+            setTransitionTime(ANIMATION_WAIT_TIME);
+//            handController.moveToRPSReady();
             currentState = STATES.INITIATE_WAIT;
         } else if (currentState == STATES.INITIATE_WAIT) {
             Log.i("STATE", "STATES.INITIATE_WAIT");
             currentState = nextStateForWaitState(STATES.COUNTDOWN);
         } else if (currentState == STATES.COUNTDOWN) {
             Log.i("STATE", "STATES.COUNTDOWN");
-            setTransitionTime();
-            handController.one();
             currentState = STATES.COUNTDOWN_WAIT;
+            setTransitionTime(4900);
+//            lightRingControl.setScore(0, 3);
+            handController.loose();
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+//                    lightRingControl.setScore(0, 2);
+                    handController.moveToRPSReady();
+                }
+            }, 800);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+//                    lightRingControl.setScore(0, 2);
+                    handController.loose();
+                }
+            }, 1600);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+//                    lightRingControl.setScore(0, 1);
+                    handController.moveToRPSReady();
+                }
+            }, 2400);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+//                    lightRingControl.setScore(0, 1);
+                    handController.loose();
+                }
+            }, 3200);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+//                    lightRingControl.setScore(0, 0);
+                    handController.moveToRPSReady();
+                }
+            }, 4000);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+//                    lightRingControl.setScore(0, 0);
+                    handController.loose();
+                }
+            }, 4800);
         } else if (currentState == STATES.COUNTDOWN_WAIT) {
             Log.i("STATE", "STATES.COUNTDOWN_WAIT");
-            currentState = nextStateForWaitState(STATES.THROW);
+            currentState = nextStateForWaitState(STATES.COUNTDOWN_DECREMENT);
+        } else if (currentState == STATES.COUNTDOWN_DECREMENT) {
+            Log.i("STATE", "STATES.COUNTDOWN_DECREMENT");
+            currentState = STATES.THROW;
         } else if (currentState == STATES.THROW) {
             Log.i("STATE", "STATES.THROW");
-            setTransitionTime();
-            handController.throwRPSAction(seenAction);
+            setTransitionTime(THROW_WAIT_TIME);
+//            handController.throwRPSAction(seenAction);
             thrownAction = ACTIONS[(int)(Math.random() * ACTIONS.length)];
             currentState = STATES.THROW_WAIT;
         } else if (currentState == STATES.THROW_WAIT) {
@@ -139,19 +190,19 @@ public class RockPaperScissors implements Game {
             if (roundWins + roundLosses >= 3) {
                 currentState = roundWins > roundLosses ? STATES.WIN : STATES.LOSS;
             } else {
-                setTransitionTime();
+                setTransitionTime(WAIT_FOR_NEW_ROUND_DELAY);
                 currentState = STATES.WAIT_FOR_NEW_ROUND;
             }
             lightRingControl.setScore(roundWins, roundLosses);
         } else if (currentState == STATES.WIN) {
             Log.i("RPS_STATE", "STATES.WIN");
             handController.thumbsUp();
-            setTransitionTime();
+            setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.LOSS) {
             Log.i("RPS_STATE", "STATES.LOSS");
             handController.thumbsDown();
-            setTransitionTime();
+            setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.WAIT_FOR_NEW_ROUND) {
             Log.i("RPS_STATE", "STATES.WAIT_FOR_NEW_ROUND");
@@ -162,7 +213,7 @@ public class RockPaperScissors implements Game {
         } else if (currentState == STATES.END_GAME) {
             Log.i("RPS_STATE", "STATES.END_GAME");
             handController.moveToIdle();
-            setTransitionTime();
+            setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.END_GAME_WAIT;
         } else if (currentState == STATES.END_GAME_WAIT) {
             Log.i("RPS_STATE", "STATES.END_GAME_WAIT");
@@ -220,8 +271,8 @@ public class RockPaperScissors implements Game {
         lightRingControl.setScore(0, 0);
     }
 
-    private void setTransitionTime() {
-        timeToTransition = System.currentTimeMillis() + ANIMATION_WAIT_TIME;
+    private void setTransitionTime(long delay) {
+        timeToTransition = System.currentTimeMillis() + delay;
     }
 
     private void resetRound() {

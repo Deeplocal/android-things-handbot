@@ -40,14 +40,14 @@ public class StandbyController implements GameStateListener {
         ROCK_PAPER_SCISSORS,
         MATCHING,
         MIRROR;
+
     }
 
-    public void init(HandController handController, LightRingControl lightRingControl, SoundController soundController) {
+    public void init(final HandController handController, LightRingControl lightRingControl, SoundController soundController) {
         this.handController = handController;
         this.lightRingControl = lightRingControl;
         this.soundController = soundController;
         this.currentState = STATES.MIRROR;
-        this.lightRingControl.runSwirl(5);
     }
 
     public void run(String action) {
@@ -68,6 +68,10 @@ public class StandbyController implements GameStateListener {
         }
     }
 
+    public HandController getHandController() {
+        return handController;
+    }
+
     @Override
     public void gameFinished() {
         if (currentGame != null) {
@@ -82,7 +86,6 @@ public class StandbyController implements GameStateListener {
             currentState = STATES.ROCK_PAPER_SCISSORS;
             currentGame = new RockPaperScissors(handController, this, lightRingControl);
             currentGame.start();
-//            lightRingControl.runPulse(1);
         } else if ("scissors".equals(lastMirroredAction)) {
             currentState = STATES.MATCHING;
             currentGame = new SimonSays(handController, this, soundController);
@@ -108,7 +111,7 @@ public class StandbyController implements GameStateListener {
             consecutiveMirroredActions = 0;
         }
         lastMirroredAction = action;
-        handController.runMirror(action);
+//        handController.runMirror(action);
     }
 
     private void runGame(String action) {

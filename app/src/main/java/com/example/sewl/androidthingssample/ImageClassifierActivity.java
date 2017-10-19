@@ -1,15 +1,26 @@
 package com.example.sewl.androidthingssample;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.util.Log;
+import android.view.KeyEvent;
+
+import com.google.android.things.contrib.driver.button.Button;
+import com.google.android.things.contrib.driver.button.ButtonInputDriver;
+
+import java.io.IOException;
 
 public class ImageClassifierActivity extends Activity
                                      implements ImageReader.OnImageAvailableListener,
                                                 CameraHandler.CameraReadyListener {
+
+    private static final String TAG = ImageClassifierActivity.class.getSimpleName();
 
     private ImagePreprocessor imagePreprocessor;
 
@@ -32,6 +43,10 @@ public class ImageClassifierActivity extends Activity
     private SoundController soundController;
 
     private ImageClassificationThread imageClassificationThread;
+
+    private ButtonInputDriver mButtonInputDriver;
+
+    private int handClosed = 0;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -56,8 +71,20 @@ public class ImageClassifierActivity extends Activity
         handController.init();
         rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.RPS_MODEL_FILE, Helper.RPS_LABELS_FILE);
         standbyController.init(handController, lightRingControl, soundController);
-        imageClassificationThread = new ImageClassificationThread(rpsTensorFlowClassifier, imagePreprocessor, standbyController);
+        imageClassificationThread = new ImageClassificationThread(rpsTensorFlowClassifier, standbyController);
         imageClassificationThread.start();
+
+        try {
+            // Step 3. Initialize button driver with selected GPIO pin
+            mButtonInputDriver = new ButtonInputDriver(
+                    "GPIO_33",
+                    Button.LogicState.PRESSED_WHEN_LOW,
+                    KeyEvent.KEYCODE_SPACE);
+            handController.loose();
+            mButtonInputDriver.register();
+        } catch (IOException e) {
+            Log.e(TAG, "Error configuring GPIO pin", e);
+        }
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {
@@ -73,11 +100,41 @@ public class ImageClassifierActivity extends Activity
     };
 
     @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (handClosed == 0) {
+            handController.loose();
+        } else if (handClosed == 1) {
+            handController.rock();
+        } else if (handClosed == 2) {
+            handController.paper();
+        } else if (handClosed == 3) {
+            handController.scissors();
+        } else if (handClosed == 4) {
+            handController.ok();
+        } else {
+            handController.relax();
+        }
+        handClosed++;
+        if (handClosed >= 6) {
+            handClosed = 0;
+        }
+        this.lightRingControl.runSwirl(1);
+        return super.onKeyUp(keyCode, event);
+    }
+
+    @Override
     public void onImageAvailable(ImageReader reader) {
         if (imageClassificationThread != null && imageClassificationThread.isAlive()) {
-            Message message = new Message();
-            message.obj = reader;
-            imageClassificationThread.getHandler().sendMessage(message);
+            final Bitmap bitmap;
+            try (Image image = reader.acquireLatestImage()) {
+                bitmap = imagePreprocessor.preprocessImage(image);
+            }
+            if (bitmap != null) {
+                Message message = new Message();
+                message.obj = bitmap;
+                imageClassificationThread.getHandler().sendMessage(message);
+            }
+            mCameraHandler.takePicture();
         }
     }
 

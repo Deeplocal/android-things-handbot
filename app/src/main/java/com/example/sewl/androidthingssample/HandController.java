@@ -26,6 +26,10 @@ public class HandController {
 
     private WristController wrist;
 
+    private Thread interpolationThread;
+
+    private FingerController[] orderedFingers;
+
     public void init() {
         pwmDriver = new MultiChannelServoDriver();
         pwmDriver.init(PWM_FREQUENCY);
@@ -36,6 +40,9 @@ public class HandController {
         pinky = new FingerController(3, pwmDriver);
         wrist = new WristController(2, pwmDriver);
         forearm = new ForearmController(0, 1, pwmDriver);
+        orderedFingers = new FingerController[] {
+            indexFinger, middleFinger, ringFinger, pinky
+        };
     }
 
     public void handleAction(String action) {
@@ -60,53 +67,93 @@ public class HandController {
         }
     }
 
-    private void scissors() {
-//        indexFinger.loose();
-//        middleFinger.loose();
-//        ringFinger.flex();
-//        pinky.flex();
+    public void scissors() {
+        indexFinger.loose();
+        middleFinger.loose();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.flex();
+        forearm.flex();
+        wrist.perpendicularToGround();
+    }
+
+    public void rock() {
+        indexFinger.flex();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.flex();
+        forearm.flex();
+        wrist.perpendicularToGround();
+    }
+
+    public void paper() {
+        indexFinger.loose();
+        middleFinger.loose();
+        ringFinger.loose();
+        pinky.loose();
+        thumb.loose();
+        forearm.flex();
+        wrist.parallelToGround();
     }
 
     public void ok() {
-//        middleFinger.setAngle(80);
-//        ringFinger.setAngle(100);
-//        pinky.setAngle(140);
-//        indexFinger.flex();
+        middleFinger.setAngle(80);
+        ringFinger.setAngle(100);
+        pinky.setAngle(140);
+        indexFinger.flex();
+        thumb.flex();
     }
 
     public void moveToRPSReady() {
-//        indexFinger.flex();
-//        ringFinger.flex();
-//        middleFinger.flex();
-//        pinky.flex();
+        indexFinger.flex();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.flex();
+        forearm.loose();
+        wrist.perpendicularToGround();
     }
 
     public void relax() {
-//        indexFinger.loose();
-//        ringFinger.loose();
-//        middleFinger.loose();
-//        pinky.loose();
+        middleFinger.setAngle(110);
+        ringFinger.setAngle(120);
+        pinky.setAngle(140);
+        indexFinger.setAngle(60);
+        thumb.setAngle(140);
+        wrist.parallelToGround();
+        forearm.loose();
+    }
+
+    public void loose() {
+        middleFinger.loose();
+        ringFinger.loose();
+        pinky.loose();
+        indexFinger.loose();
+        thumb.loose();
+        wrist.parallelToGround();
+        forearm.loose();
     }
 
     public void one() {
-//        indexFinger.loose();
-//        middleFinger.flex();
-//        ringFinger.flex();
-//        pinky.flex();
+        indexFinger.loose();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
     }
 
     public void two() {
-//        indexFinger.loose();
-//        middleFinger.loose();
-//        ringFinger.flex();
-//        pinky.flex();
+        indexFinger.loose();
+        middleFinger.loose();
+        ringFinger.flex();
+        pinky.flex();
     }
 
     public void three() {
-//        indexFinger.loose();
-//        ringFinger.loose();
-//        middleFinger.loose();
-//        pinky.flex();
+        indexFinger.loose();
+        ringFinger.loose();
+        middleFinger.loose();
+        pinky.flex();
     }
 
     public void four() {
@@ -121,7 +168,6 @@ public class HandController {
                 two();
             }
         }, 100);
-
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -162,6 +208,37 @@ public class HandController {
 
     public void throwRPSAction(String action) {
 
+    }
+
+    public void interpolateToAngle() {
+        interpolationThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < 100; i+=4) {
+
+                    for (int j = 0; j < orderedFingers.length; j++) {
+                        float t = (float) i/100;
+                        float offset = (float)j / (float) 4;
+                        int angle = (int) Math.round(180 * Math.sin(t * Math.PI - offset));
+                        orderedFingers[j].setAngle(angle, false);
+                    }
+
+                    try {
+                        Thread.sleep(15);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                stopInterpolation();
+            }
+        });
+        interpolationThread.start();
+    }
+
+    private void stopInterpolation() {
+        if (interpolationThread != null) {
+            interpolationThread.interrupt();
+        }
     }
 
     public void thumbsUp() {

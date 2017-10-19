@@ -8,7 +8,6 @@ import com.google.android.things.pio.PeripheralManagerService;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 import static android.content.ContentValues.TAG;
 
@@ -19,7 +18,8 @@ import static android.content.ContentValues.TAG;
 public class MultiChannelServoDriver {
 
     private static final String I2C_DEVICE_NAME = "";
-    private static final byte I2C_ADDRESS        = 0x41;
+    private static final boolean ENABLE_SERVOS  = false;
+    private static final byte I2C_ADDRESS       = 0x41;
     private static final byte PCA9685_MODE1     = 0x00;
     private static final byte RESET             = 0x00;
     private static final int PCA9685_PRESCALE   = 0xFE;
@@ -93,10 +93,12 @@ public class MultiChannelServoDriver {
     }
 
     private void writeReg(int reg, byte data) {
-        if (i2cDevice != null) try {
-            i2cDevice.writeRegByte(reg, data);
-        } catch (IOException e) {
-            Log.e("PWMDriver", "Could not write reg: " + e);
+        if (ENABLE_SERVOS) {
+            if (i2cDevice != null) try {
+                i2cDevice.writeRegByte(reg, data);
+            } catch (IOException e) {
+                Log.e("PWMDriver", "Could not write reg: " + e);
+            }
         }
     }
 

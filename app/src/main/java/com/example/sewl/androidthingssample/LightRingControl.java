@@ -12,8 +12,9 @@ import java.io.IOException;
 
 public class LightRingControl {
 
-    private static final int NUMBER_OF_LEDS = 4;
-    private static final int PULSE_DELAY    = 10;
+    private static final int NUMBER_OF_LEDS    = 4;
+    private static final int PULSE_DELAY       = 10;
+    public static final String DEFAULT_SPI_BUS = "SPI3.0";
 
     private Thread ledThread;
 
@@ -26,8 +27,8 @@ public class LightRingControl {
 
     public void init() {
         try {
-            mLedstrip = new Apa102("SPI3.0", Apa102.Mode.BGR, Apa102.Direction.NORMAL);
-            mLedstrip.setBrightness(3);
+            mLedstrip = new Apa102(DEFAULT_SPI_BUS, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+            mLedstrip.setBrightness(10);
         } catch (IOException e) { }
     }
 
@@ -87,6 +88,7 @@ public class LightRingControl {
     }
 
     public void runPulse(int pulses) {
+        stopLedThread();
         totalPulsesToRun = pulses;
         ledThread = new Thread(new Runnable() {
             @Override
@@ -148,6 +150,11 @@ public class LightRingControl {
         if (ledThread != null) {
             ledThread.interrupt();
             ledThread = null;
+            try {
+                mLedstrip.write(new int[]{ 0, 0, 0, 0 });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
