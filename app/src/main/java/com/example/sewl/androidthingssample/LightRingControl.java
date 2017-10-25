@@ -59,6 +59,7 @@ public class LightRingControl {
                 int color = Color.HSVToColor(new float[]{ 200.0f, 1.0f, (float) lightness});
                 colors[j] = color;
             }
+
             try {
                 mLedstrip.write(colors);
             } catch (IOException e) {

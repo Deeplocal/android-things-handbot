@@ -50,7 +50,7 @@ public class StandbyController implements GameStateListener {
         this.currentState = STATES.MIRROR;
     }
 
-    public void run(String action) {
+    public void run(String action, List<Classifier.Recognition> results) {
         if (currentState == STATES.MIRROR) {
             logAction(action);
 
@@ -66,10 +66,6 @@ public class StandbyController implements GameStateListener {
         } else if (currentState == STATES.MATCHING) {
             runGame(action);
         }
-    }
-
-    public HandController getHandController() {
-        return handController;
     }
 
     @Override
@@ -111,6 +107,7 @@ public class StandbyController implements GameStateListener {
             consecutiveMirroredActions = 0;
         }
         lastMirroredAction = action;
+        // TODO: Re-enable
 //        handController.runMirror(action);
     }
 

@@ -32,6 +32,7 @@ public class SoundController {
 
     private void play(int sound) {
         MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
+        mediaPlayer.setVolume(0, 0.9f);
         mediaPlayer.setLooping(false);
         mediaPlayer.start();
     }

@@ -1,7 +1,5 @@
 package com.example.sewl.androidthingssample;
 
-import android.os.Handler;
-
 /**
  * Created by mderrick on 10/10/17.
  */
@@ -26,10 +24,6 @@ public class HandController {
 
     private WristController wrist;
 
-    private Thread interpolationThread;
-
-    private FingerController[] orderedFingers;
-
     public void init() {
         pwmDriver = new MultiChannelServoDriver();
         pwmDriver.init(PWM_FREQUENCY);
@@ -40,9 +34,6 @@ public class HandController {
         pinky = new FingerController(3, pwmDriver);
         wrist = new WristController(2, pwmDriver);
         forearm = new ForearmController(0, 1, pwmDriver);
-        orderedFingers = new FingerController[] {
-            indexFinger, middleFinger, ringFinger, pinky
-        };
     }
 
     public void handleAction(String action) {
@@ -111,7 +102,7 @@ public class HandController {
         ringFinger.flex();
         pinky.flex();
         thumb.flex();
-        forearm.loose();
+        forearm.flex();
         wrist.perpendicularToGround();
     }
 
@@ -158,87 +149,6 @@ public class HandController {
 
     public void four() {
         relax();
-    }
-
-    public void test() {
-        three();
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                two();
-            }
-        }, 100);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                one();
-            }
-        }, 200);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                moveToRPSReady();
-            }
-        }, 300);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                one();
-            }
-        }, 700);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                two();
-            }
-        }, 800);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                three();
-            }
-        }, 900);
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                relax();
-            }
-        }, 1000);
-    }
-
-    public void throwRPSAction(String action) {
-
-    }
-
-    public void interpolateToAngle() {
-        interpolationThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 100; i+=4) {
-
-                    for (int j = 0; j < orderedFingers.length; j++) {
-                        float t = (float) i/100;
-                        float offset = (float)j / (float) 4;
-                        int angle = (int) Math.round(180 * Math.sin(t * Math.PI - offset));
-                        orderedFingers[j].setAngle(angle, false);
-                    }
-
-                    try {
-                        Thread.sleep(15);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                stopInterpolation();
-            }
-        });
-        interpolationThread.start();
-    }
-
-    private void stopInterpolation() {
-        if (interpolationThread != null) {
-            interpolationThread.interrupt();
-        }
     }
 
     public void thumbsUp() {

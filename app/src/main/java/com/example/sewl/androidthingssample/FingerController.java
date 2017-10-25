@@ -21,8 +21,6 @@ public class FingerController {
 
     private Handler settleServoHandler = new Handler();
 
-    private Thread interpolationThread;
-
     public FingerController(int channel, MultiChannelServoDriver servoDriver) {
         this.channel = channel;
         this.servoDriver = servoDriver;
@@ -60,21 +58,12 @@ public class FingerController {
 
     private void settleServo(int angleMoved) {
         settleServoHandler.removeCallbacksAndMessages(null);
-        long relaxTime = (long) (((float) angleMoved / 180.0f) * 500.);
+        long relaxTime = (long) (((float) angleMoved / 180.0f) * 500.0f);
         settleServoHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 servoDriver.setPWM(channel, 0, SERVO_OFF_VALUE);
             }
         }, relaxTime);
-    }
-
-    private void interpolate() {
-        interpolationThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-            }
-        });
-        interpolationThread.start();
     }
 }

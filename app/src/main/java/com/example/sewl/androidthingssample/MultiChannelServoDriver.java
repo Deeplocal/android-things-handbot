@@ -18,7 +18,7 @@ import static android.content.ContentValues.TAG;
 public class MultiChannelServoDriver {
 
     private static final String I2C_DEVICE_NAME = "";
-    private static final boolean ENABLE_SERVOS  = false;
+    private static final boolean ENABLE_SERVOS  = true;
     private static final byte I2C_ADDRESS       = 0x41;
     private static final byte PCA9685_MODE1     = 0x00;
     private static final byte RESET             = 0x00;
@@ -73,6 +73,7 @@ public class MultiChannelServoDriver {
         writeReg(PCA9685_MODE1, oldmode);
 
         new Handler().postDelayed(new Runnable() {
+
             @Override
             public void run() {
                 writeReg(PCA9685_MODE1, (byte) (oldmode | 0xa1));

@@ -41,10 +41,6 @@ public class CameraHandler {
 
     private CameraReadyListener cameraReadyListener;
 
-    private boolean captureSessionCreated;
-
-    private Handler backgroundHandler;
-
     // Lazy-loaded singleton, so only one instance of the camera is created.
     private CameraHandler() {
     }
@@ -63,7 +59,6 @@ public class CameraHandler {
         // Discover the camera instance
         CameraManager manager = (CameraManager) context.getSystemService(CAMERA_SERVICE);
         String[] camIds = {};
-        this.backgroundHandler = backgroundHandler;
         try {
             camIds = manager.getCameraIdList();
         } catch (CameraAccessException e) {
@@ -137,8 +132,6 @@ public class CameraHandler {
                     Collections.singletonList(mImageReader.getSurface()),
                     mSessionCallback,
                     null);
-
-            captureSessionCreated = true;
         } catch (CameraAccessException cae) {
             Log.d(TAG, "access exception while preparing pic", cae);
         }
@@ -166,7 +159,6 @@ public class CameraHandler {
             final CaptureRequest.Builder captureBuilder =
                     mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureBuilder.addTarget(mImageReader.getSurface());
-            Log.d(TAG, "Capture request created.");
             captureBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_OFF);
             captureBuilder.set(
                     CaptureRequest.CONTROL_AF_TRIGGER,

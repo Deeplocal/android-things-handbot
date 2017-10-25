@@ -48,6 +48,8 @@ public class ImageClassifierActivity extends Activity
 
     private int handClosed = 0;
 
+    private boolean processingImage;
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,7 +61,6 @@ public class ImageClassifierActivity extends Activity
     private void init() {
         standbyController = new StandbyController();
         soundController = new SoundController(this);
-        soundController.playSound(SoundController.SOUNDS.INCORRECT);
         lightRingControl = new LightRingControl();
         lightRingControl.init();
         imagePreprocessor = new ImagePreprocessor();
@@ -74,8 +75,8 @@ public class ImageClassifierActivity extends Activity
         imageClassificationThread = new ImageClassificationThread(rpsTensorFlowClassifier, standbyController);
         imageClassificationThread.start();
 
+        // TODO: Remove me
         try {
-            // Step 3. Initialize button driver with selected GPIO pin
             mButtonInputDriver = new ButtonInputDriver(
                     "GPIO_33",
                     Button.LogicState.PRESSED_WHEN_LOW,
@@ -101,23 +102,7 @@ public class ImageClassifierActivity extends Activity
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (handClosed == 0) {
-            handController.loose();
-        } else if (handClosed == 1) {
-            handController.rock();
-        } else if (handClosed == 2) {
-            handController.paper();
-        } else if (handClosed == 3) {
-            handController.scissors();
-        } else if (handClosed == 4) {
-            handController.ok();
-        } else {
-            handController.relax();
-        }
-        handClosed++;
-        if (handClosed >= 6) {
-            handClosed = 0;
-        }
+        soundController.playSound(SoundController.SOUNDS.CORRECT);
         this.lightRingControl.runSwirl(1);
         return super.onKeyUp(keyCode, event);
     }
@@ -125,6 +110,7 @@ public class ImageClassifierActivity extends Activity
     @Override
     public void onImageAvailable(ImageReader reader) {
         if (imageClassificationThread != null && imageClassificationThread.isAlive()) {
+            processingImage = true;
             final Bitmap bitmap;
             try (Image image = reader.acquireLatestImage()) {
                 bitmap = imagePreprocessor.preprocessImage(image);
