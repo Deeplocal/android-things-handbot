@@ -8,41 +8,41 @@ public class HandController {
 
     public static final int PWM_FREQUENCY = 60;
 
-    private FingerController indexFinger;
+    public FingerController indexFinger;
 
-    private FingerController ringFinger;
+    public FingerController ringFinger;
 
-    private FingerController middleFinger;
+    public FingerController middleFinger;
 
-    private FingerController pinky;
+    public FingerController pinky;
 
-    private FingerController thumb;
+    public ThumbController thumb;
 
-    private ForearmController forearm;
+    public ForearmController forearm;
 
-    private MultiChannelServoDriver pwmDriver;
+    public MultiChannelServoDriver pwmDriver;
 
-    private WristController wrist;
+    public WristController wrist;
 
     public void init() {
         pwmDriver = new MultiChannelServoDriver();
         pwmDriver.init(PWM_FREQUENCY);
-        thumb = new FingerController(7, pwmDriver);
-        indexFinger = new FingerController(6, pwmDriver);
-        middleFinger = new FingerController(5, pwmDriver);
-        ringFinger = new FingerController(4, pwmDriver);
-        pinky = new FingerController(3, pwmDriver);
-        wrist = new WristController(2, pwmDriver);
-        forearm = new ForearmController(0, 1, pwmDriver);
+        thumb = new ThumbController(6, pwmDriver, true);
+        indexFinger = new FingerController(5, pwmDriver, false, 0);
+        middleFinger = new FingerController(4, pwmDriver, false, 0);
+        ringFinger = new FingerController(3, pwmDriver, true, 40);
+        pinky = new FingerController(2, pwmDriver, false, 0);
+        wrist = new WristController(1, pwmDriver);
+        forearm = new ForearmController(0, 0, pwmDriver);
     }
 
     public void handleAction(String action) {
         if (action.contains("rock")) {
-            moveToRPSReady();
+            rock();
         } else if (action.contains("scissors")) {
             scissors();
         } else if (action.contains("paper")) {
-            relax();
+            paper();
         } else if (action.contains("ok")) {
             ok();
         }
@@ -50,11 +50,11 @@ public class HandController {
 
     public void runMirror(String action) {
         if (action.contains("rock")) {
-            moveToRPSReady();
+            fist();
         } else if (action.contains("scissors")) {
-            scissors();
-        } else if (action.contains("ok")) {
-            ok();
+            mirrorScissors();
+        } else if (action.contains("paper")) {
+            mirrorPaper();
         }
     }
 
@@ -68,6 +68,16 @@ public class HandController {
         wrist.perpendicularToGround();
     }
 
+    public void mirrorScissors() {
+        indexFinger.loose();
+        middleFinger.loose();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.flex();
+        forearm.flex();
+        wrist.parallelToGround();
+    }
+
     public void rock() {
         indexFinger.flex();
         middleFinger.flex();
@@ -78,6 +88,16 @@ public class HandController {
         wrist.perpendicularToGround();
     }
 
+    public void fist() {
+        indexFinger.flex();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.flex();
+        forearm.flex();
+        wrist.parallelToGround();
+    }
+
     public void paper() {
         indexFinger.loose();
         middleFinger.loose();
@@ -85,6 +105,16 @@ public class HandController {
         pinky.loose();
         thumb.loose();
         forearm.flex();
+        wrist.perpendicularToGround();
+    }
+
+    public void mirrorPaper() {
+        indexFinger.loose();
+        middleFinger.loose();
+        ringFinger.loose();
+        pinky.loose();
+        thumb.loose();
+        forearm.loose();
         wrist.parallelToGround();
     }
 
@@ -103,7 +133,7 @@ public class HandController {
         pinky.flex();
         thumb.flex();
         forearm.flex();
-        wrist.perpendicularToGround();
+        wrist.parallelToGround();
     }
 
     public void relax() {
@@ -152,7 +182,7 @@ public class HandController {
     }
 
     public void thumbsUp() {
-        moveToRPSReady();
+//        moveToRPSReady();
     }
 
     public void thumbsDown() {

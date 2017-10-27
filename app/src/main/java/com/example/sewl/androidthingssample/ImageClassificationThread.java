@@ -53,7 +53,7 @@ public class ImageClassificationThread extends Thread {
 
         final List<Classifier.Recognition> results = imageClassifier.doRecognize(bitmap);
         if (results.size() > 0) {
-//            standbyController.run(results.get(0).getTitle(), results);
+            standbyController.run(results.get(0).getTitle(), results);
             Log.i("RESULTS", imageClassifier.getModelFile() + " : " + results);
         }
         classifyingImage = false;

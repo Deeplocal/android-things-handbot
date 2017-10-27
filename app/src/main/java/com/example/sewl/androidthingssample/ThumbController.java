@@ -3,18 +3,15 @@ package com.example.sewl.androidthingssample;
 import android.os.Handler;
 
 /**
- * Created by mderrick on 10/10/17.
+ * Created by mderrick on 10/26/17.
  */
 
-public class FingerController {
+public class ThumbController {
 
     public static final int SERVO_OFF_VALUE = 0;
 
     private static int FLEXED_ANGLE = 180;
-
     private static int LOOSE_ANGLE  = 0;
-
-    private final int offset;
 
     private int channel;
 
@@ -22,17 +19,16 @@ public class FingerController {
 
     private MultiChannelServoDriver servoDriver;
 
-    private boolean reverseAngle;
-
     private Handler settleServoHandler = new Handler();
+
+    private boolean reverseAngle;
 
     private boolean isEnabled = true;
 
-    public FingerController(int channel, MultiChannelServoDriver servoDriver, boolean reverseAngle, int offset) {
+    public ThumbController(int channel, MultiChannelServoDriver servoDriver, boolean reverseAngle) {
         this.channel = channel;
         this.servoDriver = servoDriver;
         this.reverseAngle = reverseAngle;
-        this.offset = offset;
     }
 
     public void setEnabled(boolean isEnabled) {
@@ -44,7 +40,7 @@ public class FingerController {
     }
 
     public void loose() {
-        setAngle(LOOSE_ANGLE + offset);
+        setAngle(LOOSE_ANGLE);
     }
 
     public void setAngle(int angle) {

@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class LightRingControl {
 
-    private static final int NUMBER_OF_LEDS    = 4;
+    private static final int NUMBER_OF_LEDS    = 6;
     private static final int PULSE_DELAY       = 10;
     public static final String DEFAULT_SPI_BUS = "SPI3.0";
 
@@ -28,18 +28,20 @@ public class LightRingControl {
     public void init() {
         try {
             mLedstrip = new Apa102(DEFAULT_SPI_BUS, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
-            mLedstrip.setBrightness(10);
+            mLedstrip.setBrightness(20);
         } catch (IOException e) { }
     }
 
-    public void runSwirl(int pulsesToRun) {
+    public void runSwirl(int pulsesToRun, final int color) {
+        final float[] hsv = new float[3];
+        Color.RGBToHSV((color >> 16)& 0xFF, (color >> 8) & 0xFF, color & 0xFF, hsv);
         this.totalPulsesToRun = pulsesToRun;
         ledThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 int numberOfRuns = 0;
                 while(numberOfRuns < totalPulsesToRun) {
-                    swirl();
+                    swirl(hsv[0]);
                     numberOfRuns++;
                 }
                 stopLedThread();
@@ -48,15 +50,19 @@ public class LightRingControl {
         ledThread.start();
     }
 
-    private void swirl() {
-        int[] colors = new int[] {0, 0, 0, 0};
+    public void runSwirl(int pulsesToRun) {
+        runSwirl(pulsesToRun, Color.BLUE);
+    }
+
+    private void swirl(float ledColor) {
+        int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 0; i <= 720; i+=8) {
             float t = i/360.0f;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 float offset = (float)j / (float) NUMBER_OF_LEDS;
                 // 2*offset for slower ring
                 double lightness = 0.3f * Math.sin(t * Math.PI - 2*offset);
-                int color = Color.HSVToColor(new float[]{ 200.0f, 1.0f, (float) lightness});
+                int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, (float) lightness});
                 colors[j] = color;
             }
 
@@ -74,7 +80,7 @@ public class LightRingControl {
     }
 
     public void setScore(int me, int them) {
-        int[] colors = new int[] {0, 0, 0, 0};
+        int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 0; i < me; i++) {
             colors[i] = Color.BLUE;
         }
@@ -107,7 +113,7 @@ public class LightRingControl {
     }
 
     private void illuminate() {
-        int[] colors = new int[] {0, 0, 0, 0};
+        int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 0; i < 170; i+=2) {
             float t = i/360.0f;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
@@ -128,7 +134,7 @@ public class LightRingControl {
     }
 
     private void deluminate() {
-        int[] colors = new int[] {0, 0, 0, 0};
+        int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 170; i >= 0; i-=2) {
             float t = i/360.0f;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
@@ -152,7 +158,7 @@ public class LightRingControl {
             ledThread.interrupt();
             ledThread = null;
             try {
-                mLedstrip.write(new int[]{ 0, 0, 0, 0 });
+                mLedstrip.write(new int[NUMBER_OF_LEDS]);
             } catch (IOException e) {
                 e.printStackTrace();
             }

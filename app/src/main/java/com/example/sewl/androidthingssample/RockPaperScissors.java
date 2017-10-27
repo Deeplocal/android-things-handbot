@@ -1,5 +1,6 @@
 package com.example.sewl.androidthingssample;
 
+import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -14,8 +15,9 @@ import java.util.Map;
 public class RockPaperScissors implements Game {
 
     public static final int WIN_SAMPLES_NEEDED = 3;
-    private static final long THROW_WAIT_TIME = 800;
+    private static final long THROW_WAIT_TIME = 600;
     private static final long WAIT_FOR_NEW_ROUND_DELAY = 800;
+    private static final long START_ROUND_TIME = 1500;
 
     private GameStateListener gameStateListener;
 
@@ -51,7 +53,6 @@ public class RockPaperScissors implements Game {
         INITIATE_WAIT,
         COUNTDOWN,
         COUNTDOWN_WAIT,
-        COUNTDOWN_DECREMENT,
         THROW,
         THROW_WAIT,
         MONITOR,
@@ -81,7 +82,14 @@ public class RockPaperScissors implements Game {
 
     @Override
     public void start() {
-        currentState = STATES.INITIATE;
+        lightRingControl.runSwirl(4);
+        handController.loose();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                currentState = STATES.INITIATE;
+            }
+        }, 3000);
     }
 
     @Override
@@ -97,8 +105,8 @@ public class RockPaperScissors implements Game {
         } else if (currentState == STATES.INITIATE) {
             Log.i("STATE", "STATES.INITIATE");
             resetRound();
-            setTransitionTime(ANIMATION_WAIT_TIME);
-//            handController.moveToRPSReady();
+            handController.loose();
+            setTransitionTime(START_ROUND_TIME);
             currentState = STATES.INITIATE_WAIT;
         } else if (currentState == STATES.INITIATE_WAIT) {
             Log.i("STATE", "STATES.INITIATE_WAIT");
@@ -106,68 +114,57 @@ public class RockPaperScissors implements Game {
         } else if (currentState == STATES.COUNTDOWN) {
             Log.i("STATE", "STATES.COUNTDOWN");
             currentState = STATES.COUNTDOWN_WAIT;
-            setTransitionTime(4900);
-//            lightRingControl.setScore(0, 3);
-            handController.loose();
+            setTransitionTime(2400);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-//                    lightRingControl.setScore(0, 2);
-                    handController.moveToRPSReady();
+                    handController.pinky.setAngle(120);
                 }
-            }, 800);
+            }, 300);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-//                    lightRingControl.setScore(0, 2);
                     handController.loose();
                 }
-            }, 1600);
+            }, 600);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-//                    lightRingControl.setScore(0, 1);
-                    handController.moveToRPSReady();
+                    handController.pinky.setAngle(120);
+                }
+            }, 1200);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    handController.loose();
+                }
+            }, 1500);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    handController.pinky.setAngle(120);
+                }
+            }, 2100);
+            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    handController.loose();
                 }
             }, 2400);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-//                    lightRingControl.setScore(0, 1);
-                    handController.loose();
-                }
-            }, 3200);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-//                    lightRingControl.setScore(0, 0);
-                    handController.moveToRPSReady();
-                }
-            }, 4000);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-//                    lightRingControl.setScore(0, 0);
-                    handController.loose();
-                }
-            }, 4800);
         } else if (currentState == STATES.COUNTDOWN_WAIT) {
             Log.i("STATE", "STATES.COUNTDOWN_WAIT");
-            currentState = nextStateForWaitState(STATES.COUNTDOWN_DECREMENT);
-        } else if (currentState == STATES.COUNTDOWN_DECREMENT) {
-            Log.i("STATE", "STATES.COUNTDOWN_DECREMENT");
-            currentState = STATES.THROW;
+            currentState = nextStateForWaitState(STATES.THROW);
         } else if (currentState == STATES.THROW) {
             Log.i("STATE", "STATES.THROW");
             setTransitionTime(THROW_WAIT_TIME);
-//            handController.throwRPSAction(seenAction);
             thrownAction = ACTIONS[(int)(Math.random() * ACTIONS.length)];
+            handController.handleAction(thrownAction);
             currentState = STATES.THROW_WAIT;
         } else if (currentState == STATES.THROW_WAIT) {
             Log.i("STATE", "STATES.THROW_WAIT");
             currentState = nextStateForWaitState(STATES.MONITOR);
         } else if (currentState == STATES.MONITOR) {
-            Log.i("STATE", "STATES.MONITOR");
+            Log.i("STATE", "STATES.MONITOR: " + seenAction);
             logAction(seenAction);
             if (getUserThrow() != null) {
                 currentState = STATES.DETERMINE_ROUND_WINNER;
@@ -185,9 +182,11 @@ public class RockPaperScissors implements Game {
             } else if (gameResults == GAME_RESULTS.LOSS) {
                 Log.i("STATE", "loss: " + thrownAction + " vs " + userThrow);
                 roundLosses++;
+            } else {
+                Log.i("STATE", "tie: " + thrownAction + " vs " + userThrow);
             }
 
-            if (roundWins + roundLosses >= 3) {
+            if (gameOver()) {
                 currentState = roundWins > roundLosses ? STATES.WIN : STATES.LOSS;
             } else {
                 setTransitionTime(WAIT_FOR_NEW_ROUND_DELAY);
@@ -196,12 +195,12 @@ public class RockPaperScissors implements Game {
             lightRingControl.setScore(roundWins, roundLosses);
         } else if (currentState == STATES.WIN) {
             Log.i("RPS_STATE", "STATES.WIN");
-            handController.thumbsUp();
+            lightRingControl.runSwirl(5, Color.BLUE);
             setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.LOSS) {
             Log.i("RPS_STATE", "STATES.LOSS");
-            handController.thumbsDown();
+            lightRingControl.runSwirl(5, Color.MAGENTA);
             setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.WAIT_FOR_NEW_ROUND) {
@@ -212,7 +211,7 @@ public class RockPaperScissors implements Game {
             currentState = nextStateForWaitState(STATES.END_GAME);
         } else if (currentState == STATES.END_GAME) {
             Log.i("RPS_STATE", "STATES.END_GAME");
-            handController.moveToIdle();
+            handController.loose();
             setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.END_GAME_WAIT;
         } else if (currentState == STATES.END_GAME_WAIT) {
@@ -225,6 +224,11 @@ public class RockPaperScissors implements Game {
             }
             currentState = STATES.IDLE;
         }
+    }
+
+    private boolean gameOver() {
+        return roundLosses == 2 || roundWins == 2 ||
+                (roundWins + roundLosses) >= 3;
     }
 
     private GAME_RESULTS getGameResults(String seenAction) {

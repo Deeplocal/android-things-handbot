@@ -8,8 +8,9 @@ import android.os.Handler;
 
 public class WristController {
 
-    private static int FLEXED_ANGLE = 180;
-    private static int LOOSE_ANGLE  = 0;
+    private static int FLEXED_ANGLE = 40;
+    private static int LOOSE_ANGLE  = 120;
+    public static final int SERVO_OFF_VALUE = 0;
 
     private int channel;
 
@@ -39,21 +40,23 @@ public class WristController {
     public void setAngle(int angle) {
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {
+            int diff = Math.abs(angle - currentAngle);
             if (currentAngle != angle) {
                 servoDriver.setAngle(channel, angle);
             }
             this.currentAngle = angle;
-            settleServo();
+            settleServo(diff);
         }
     }
 
-    private void settleServo() {
+    private void settleServo(int angleMoved) {
         settleServoHandler.removeCallbacksAndMessages(null);
+        long relaxTime = (long) (((float) angleMoved / 180.0f) * 500.0f);
         settleServoHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                servoDriver.setPWM(channel, 0, 0);
+                servoDriver.setPWM(channel, 0, SERVO_OFF_VALUE);
             }
-        }, 1000);
+        }, relaxTime);
     }
 }

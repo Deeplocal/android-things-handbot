@@ -15,7 +15,7 @@ import java.util.Map;
 public class StandbyController implements GameStateListener {
 
     private static final Integer SAMPLES_PER_ACTION = 3;
-    private static final Integer SAMPLES_TO_START_GAME = 4;
+    private static final Integer SAMPLES_TO_START_GAME = 8;
 
     private HandController handController;
 
@@ -35,6 +35,8 @@ public class StandbyController implements GameStateListener {
 
     private SoundController soundController;
 
+    private int seenActions = 0;
+
     private enum STATES {
         IDLE,
         ROCK_PAPER_SCISSORS,
@@ -52,15 +54,16 @@ public class StandbyController implements GameStateListener {
 
     public void run(String action, List<Classifier.Recognition> results) {
         if (currentState == STATES.MIRROR) {
-            logAction(action);
+            logAction(action, results);
 
             if (shouldStartGame()) {
                 clearLoggedActions();
                 startGame();
-            } else if (shouldMirror()) {
+            } else if (shouldMirror(results)) {
                 clearLoggedActions();
                 runMirror(action);
             }
+//            }
         } else if (currentState == STATES.ROCK_PAPER_SCISSORS) {
             runGame(action);
         } else if (currentState == STATES.MATCHING) {
@@ -95,8 +98,8 @@ public class StandbyController implements GameStateListener {
                 GAME_START_ACTIONS.contains(lastMirroredAction);
     }
 
-    private boolean shouldMirror() {
-        return getSmoothedAction() != null;
+    private boolean shouldMirror(List<Classifier.Recognition> results) {
+        return results.get(0).getConfidence() > 0.92f || getSmoothedAction() != null;
     }
 
     private void runMirror(String action) {
@@ -108,7 +111,7 @@ public class StandbyController implements GameStateListener {
         }
         lastMirroredAction = action;
         // TODO: Re-enable
-//        handController.runMirror(action);
+        handController.runMirror(action);
     }
 
     private void runGame(String action) {
@@ -126,15 +129,26 @@ public class StandbyController implements GameStateListener {
         return null;
     }
 
-    private void logAction(String seenAction) {
+    private void logAction(String seenAction, List<Classifier.Recognition> results) {
+        if (seenActions >= 30) {
+            clearLoggedActions();
+        }
+        seenActions++;
+
+        if (results.get(0).getConfidence() < 0.85f || results.size() > 1) {
+            return;
+        }
+
         if (!monitoredActions.containsKey(seenAction)) {
             monitoredActions.put(   seenAction, 0);
         }
+
         Integer oldValue = monitoredActions.get(seenAction);
         monitoredActions.put(seenAction, oldValue + 1);
     }
 
     private void clearLoggedActions() {
+        seenActions = 0;
         monitoredActions = new HashMap();
     }
 }

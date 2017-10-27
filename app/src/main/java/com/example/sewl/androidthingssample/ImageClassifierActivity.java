@@ -2,6 +2,7 @@ package com.example.sewl.androidthingssample;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
@@ -102,8 +103,18 @@ public class ImageClassifierActivity extends Activity
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        soundController.playSound(SoundController.SOUNDS.CORRECT);
-        this.lightRingControl.runSwirl(1);
+//        soundController.playSound(SoundController.SOUNDS.CORRECT);
+        this.lightRingControl.runSwirl(1, Color.MAGENTA);
+        handClosed++;
+        if (handClosed == 1) {
+            handController.rock();
+//            handController.middleFinger.flex();
+//        } else if (handClosed == 2) {
+//            handController.one();
+        } else {
+            handController.loose();
+            handClosed = 0;
+        }
         return super.onKeyUp(keyCode, event);
     }
 

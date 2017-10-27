@@ -30,7 +30,9 @@ public class MultiChannelServoDriver {
     private static final int SERVO_MIN_ANGLE    = 0;
     private static final int SERVO_MAX_ANGLE    = 180;
     private static final int SERVO_MIN          = 150;
-    private static final int SERVO_MAX          = 600;
+    private static final int SERVO_MAX          = 700;
+    private static final int WRIST_SERVO_MIN    = 150;
+    private static final int WRIST_SERVO_MAX    = 600;
 
     private I2cDevice i2cDevice;
 
@@ -47,6 +49,7 @@ public class MultiChannelServoDriver {
     }
 
     public void setAngle(final int channel, int angle) {
+//        int off = (int) ((angle / (float) servoMax) * (servoMax - servoMin)) + servoMin;
         int off = (int) ((angle / (float) SERVO_MAX_ANGLE) * (SERVO_MAX - SERVO_MIN)) + SERVO_MIN;
         setPWM(channel, 0, off);
     }
