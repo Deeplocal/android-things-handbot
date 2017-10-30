@@ -1,6 +1,7 @@
 package com.example.sewl.androidthingssample;
 
 import android.graphics.Color;
+import android.util.Log;
 
 import com.google.android.things.contrib.driver.apa102.Apa102;
 
@@ -12,9 +13,11 @@ import java.io.IOException;
 
 public class LightRingControl {
 
-    private static final int NUMBER_OF_LEDS    = 6;
-    private static final int PULSE_DELAY       = 10;
-    public static final String DEFAULT_SPI_BUS = "SPI3.0";
+    private static final int NUMBER_OF_LEDS         = 6;
+    private static final int PULSE_DELAY            = 10;
+    private static final int NUMBER_OF_LED_STEPS    = 720;
+    public static final String DEFAULT_SPI_BUS      = "SPI3.0";
+    private static final float SWIRL_SECONDS        = 1.5f;
 
     private Thread ledThread;
 
@@ -32,8 +35,10 @@ public class LightRingControl {
         } catch (IOException e) { }
     }
 
-    public void runSwirl(int pulsesToRun, final int color) {
+    public void runSwirl(int pulsesToRun, final int color, final float totalPulseSeconds) {
         final float[] hsv = new float[3];
+        final long totalMillis = Math.round((totalPulseSeconds / (float) (NUMBER_OF_LED_STEPS)) * 1000);
+        Log.i("TOTAL", "millis: " + totalMillis);
         Color.RGBToHSV((color >> 16)& 0xFF, (color >> 8) & 0xFF, color & 0xFF, hsv);
         this.totalPulsesToRun = pulsesToRun;
         ledThread = new Thread(new Runnable() {
@@ -41,7 +46,7 @@ public class LightRingControl {
             public void run() {
                 int numberOfRuns = 0;
                 while(numberOfRuns < totalPulsesToRun) {
-                    swirl(hsv[0]);
+                    swirl(hsv[0], totalMillis);
                     numberOfRuns++;
                 }
                 stopLedThread();
@@ -50,20 +55,27 @@ public class LightRingControl {
         ledThread.start();
     }
 
-    public void runSwirl(int pulsesToRun) {
-        runSwirl(pulsesToRun, Color.BLUE);
+    public void runSwirl(int pulsesToRun, final int color) {
+        runSwirl(pulsesToRun, color, SWIRL_SECONDS);
     }
 
-    private void swirl(float ledColor) {
+    public void runSwirl(int pulsesToRun) {
+        runSwirl(pulsesToRun, Color.BLUE, SWIRL_SECONDS);
+    }
+
+    private void swirl(float ledColor, long pulseDelay) {
         int[] colors = new int[NUMBER_OF_LEDS];
-        for (int i = 0; i <= 720; i+=8) {
-            float t = i/360.0f;
+        for (int i = 0; i <= NUMBER_OF_LED_STEPS; i+=2) {
+            float t = i/(NUMBER_OF_LED_STEPS * 0.5f);
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 float offset = (float)j / (float) NUMBER_OF_LEDS;
                 // 2*offset for slower ring
                 double lightness = 0.3f * Math.sin(t * Math.PI - 2*offset);
                 int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, (float) lightness});
                 colors[j] = color;
+                if (Thread.currentThread().isInterrupted()) {
+                    return;
+                }
             }
 
             try {
@@ -73,7 +85,7 @@ public class LightRingControl {
             }
 
             try {
-                Thread.sleep(PULSE_DELAY);
+                Thread.sleep(pulseDelay);
             } catch (InterruptedException e) {
             }
         }
@@ -95,16 +107,26 @@ public class LightRingControl {
     }
 
     public void runPulse(int pulses) {
+        runPulse(pulses, Color.BLUE);
+    }
+
+    public void runPulse(int pulses, int color) {
         stopLedThread();
         totalPulsesToRun = pulses;
+        final float[] hsv = new float[3];
+        Color.RGBToHSV((color >> 16)& 0xFF, (color >> 8) & 0xFF, color & 0xFF, hsv);
         ledThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 int numberOfRuns = 0;
                 while(numberOfRuns < totalPulsesToRun) {
-                    illuminate();
-                    deluminate();
+                    illuminate(hsv[0]);
+                    deluminate(hsv[0]);
                     numberOfRuns++;
+
+                    if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
                 }
                 stopLedThread();
             };
@@ -112,12 +134,12 @@ public class LightRingControl {
         ledThread.start();
     }
 
-    private void illuminate() {
+    private void illuminate(float ledColor) {
         int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 0; i < 170; i+=2) {
             float t = i/360.0f;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
-                int color = Color.HSVToColor(new float[]{ 200.0f, 1.0f, t});
+                int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, t});
                 colors[j] = color;
             }
             try {
@@ -133,12 +155,12 @@ public class LightRingControl {
         }
     }
 
-    private void deluminate() {
+    private void deluminate(float ledColor) {
         int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 170; i >= 0; i-=2) {
             float t = i/360.0f;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
-                int color = Color.HSVToColor(new float[]{ 200.0f, 1.0f, t});
+                int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, t});
                 colors[j] = color;
             }
             try {

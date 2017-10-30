@@ -43,8 +43,16 @@ public class HandController {
             scissors();
         } else if (action.contains("paper")) {
             paper();
-        } else if (action.contains("ok")) {
-            ok();
+        }
+    }
+
+    public void handleSimonSaysAction(String action) {
+        if (action.contains("rock")) {
+            mirrorRock();
+        } else if (action.contains("scissors")) {
+            mirrorScissors();
+        } else if (action.contains("paper")) {
+            mirrorPaper();
         }
     }
 
@@ -86,6 +94,16 @@ public class HandController {
         thumb.flex();
         forearm.flex();
         wrist.perpendicularToGround();
+    }
+
+    public void mirrorRock() {
+        indexFinger.flex();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.flex();
+        forearm.flex();
+        wrist.parallelToGround();
     }
 
     public void fist() {
@@ -136,16 +154,6 @@ public class HandController {
         wrist.parallelToGround();
     }
 
-    public void relax() {
-        middleFinger.setAngle(110);
-        ringFinger.setAngle(120);
-        pinky.setAngle(140);
-        indexFinger.setAngle(60);
-        thumb.setAngle(140);
-        wrist.parallelToGround();
-        forearm.loose();
-    }
-
     public void loose() {
         middleFinger.loose();
         ringFinger.loose();
@@ -170,19 +178,16 @@ public class HandController {
         pinky.flex();
     }
 
-    public void three() {
-        indexFinger.loose();
-        ringFinger.loose();
+    public void moveToSimonSaysReady() {
         middleFinger.loose();
-        pinky.flex();
-    }
-
-    public void four() {
-        relax();
+        ringFinger.loose();
+        pinky.loose();
+        indexFinger.loose();
+        thumb.loose();
+        wrist.parallelToGround();
     }
 
     public void thumbsUp() {
-//        moveToRPSReady();
     }
 
     public void thumbsDown() {
@@ -193,7 +198,12 @@ public class HandController {
         pwmDriver.shutDown();
     }
 
-    public void moveToIdle() {
-
+    public void point() {
+        pinky.flex();
+        ringFinger.flex();
+        middleFinger.flex();
+        indexFinger.loose();
+        thumb.flex();
+        wrist.perpendicularToGround();
     }
 }

@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class StandbyController implements GameStateListener {
 
-    private static final Integer SAMPLES_PER_ACTION = 3;
+    private static final Integer SAMPLES_PER_ACTION = 2;
     private static final Integer SAMPLES_TO_START_GAME = 8;
 
     private HandController handController;
@@ -63,11 +63,10 @@ public class StandbyController implements GameStateListener {
                 clearLoggedActions();
                 runMirror(action);
             }
-//            }
         } else if (currentState == STATES.ROCK_PAPER_SCISSORS) {
-            runGame(action);
+            runGame(action, results);
         } else if (currentState == STATES.MATCHING) {
-            runGame(action);
+            runGame(action, results);
         }
     }
 
@@ -83,11 +82,12 @@ public class StandbyController implements GameStateListener {
     private void startGame() {
         if ("rock".equals(lastMirroredAction)) {
             currentState = STATES.ROCK_PAPER_SCISSORS;
-            currentGame = new RockPaperScissors(handController, this, lightRingControl);
+//            currentGame = new RockPaperScissors(handController, this, lightRingControl);
+            currentGame = new SimonSays(handController, this, soundController, lightRingControl);
             currentGame.start();
-        } else if ("scissors".equals(lastMirroredAction)) {
+        } else if ("paper".equals(lastMirroredAction)) {
             currentState = STATES.MATCHING;
-            currentGame = new SimonSays(handController, this, soundController);
+            currentGame = new SimonSays(handController, this, soundController, lightRingControl);
             currentGame.start();
         }
         consecutiveMirroredActions = 0;
@@ -114,9 +114,9 @@ public class StandbyController implements GameStateListener {
         handController.runMirror(action);
     }
 
-    private void runGame(String action) {
+    private void runGame(String action, List<Classifier.Recognition> results) {
         if (currentGame != null) {
-            currentGame.run(action);
+            currentGame.run(action, results);
         }
     }
 
@@ -130,12 +130,12 @@ public class StandbyController implements GameStateListener {
     }
 
     private void logAction(String seenAction, List<Classifier.Recognition> results) {
-        if (seenActions >= 30) {
+        if (seenActions >= 25) {
             clearLoggedActions();
         }
         seenActions++;
 
-        if (results.get(0).getConfidence() < 0.85f || results.size() > 1) {
+        if (results.get(0).getConfidence() < 0.85f) {
             return;
         }
 

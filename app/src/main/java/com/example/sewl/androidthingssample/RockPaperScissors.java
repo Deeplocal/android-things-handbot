@@ -6,6 +6,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -82,7 +83,7 @@ public class RockPaperScissors implements Game {
 
     @Override
     public void start() {
-        lightRingControl.runSwirl(4);
+        lightRingControl.runSwirl(2);
         handController.loose();
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -98,7 +99,7 @@ public class RockPaperScissors implements Game {
     }
 
     @Override
-    public void run(String seenAction) {
+    public void run(String seenAction, List<Classifier.Recognition> results) {
         if (currentState == STATES.IDLE) {
             resetGame();
             Log.i("STATE", "IDLE");
@@ -118,7 +119,7 @@ public class RockPaperScissors implements Game {
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    handController.pinky.setAngle(120);
+                    handController.ringFinger.setAngle(120);
                 }
             }, 300);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -130,7 +131,7 @@ public class RockPaperScissors implements Game {
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    handController.pinky.setAngle(120);
+                    handController.ringFinger.setAngle(120);
                 }
             }, 1200);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
@@ -142,7 +143,7 @@ public class RockPaperScissors implements Game {
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    handController.pinky.setAngle(120);
+                    handController.ringFinger.setAngle(120);
                 }
             }, 2100);
             new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {

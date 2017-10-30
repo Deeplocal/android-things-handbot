@@ -107,8 +107,8 @@ public class ImageClassifierActivity extends Activity
         this.lightRingControl.runSwirl(1, Color.MAGENTA);
         handClosed++;
         if (handClosed == 1) {
-            handController.rock();
-//            handController.middleFinger.flex();
+//            handController.rock();
+            handController.thumb.flex();
 //        } else if (handClosed == 2) {
 //            handController.one();
         } else {
