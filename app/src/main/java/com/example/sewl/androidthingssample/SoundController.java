@@ -24,9 +24,23 @@ public class SoundController {
 
     public void playSound(SOUNDS sound) {
         if (sound == SOUNDS.CORRECT) {
-            play(R.raw.success);
+            play(R.raw.success_tone);
         } else if (sound == SOUNDS.INCORRECT) {
-            play(R.raw.error);
+            play(R.raw.error_tone);
+        }
+    }
+
+    public void playSignSound(String action) {
+        if ("rock".equals(action)) {
+            play(R.raw.c_l_tone);
+        } else if ("scissors".equals(action)) {
+            play(R.raw.c_h_tone);
+        } else if ("paper".equals(action)) {
+            play(R.raw.a_tone);
+        } else if ("spiderman".equals(action)) {
+            play(R.raw.g_tone);
+        } else {
+            play(R.raw.b_tone);
         }
     }
 

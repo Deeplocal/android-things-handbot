@@ -117,6 +117,7 @@ public class SimonSays implements Game {
                 String sign = signsToShow.remove(0);
                 Log.i("STATE", "state: SHOW_SIGN: " + sign);
                 handController.handleSimonSaysAction(sign);
+                soundController.playSignSound(sign);
                 currentState = STATES.SHOW_SIGN_WAIT;
                 break;
             case SHOW_SIGN_WAIT:
@@ -154,25 +155,24 @@ public class SimonSays implements Game {
             case DETERMINE_SIGN_CORRECT:
                 Log.i("STATE", "state: DETERMINE_SIGN_CORRECT");
                 if (monitoredActions.containsKey(signsToMatch.get(0))) {
-                    signsToMatch.remove(0);
+                    String matchedSign = signsToMatch.remove(0);
                     if (signsToMatch.size() > 0) {
                         currentState = STATES.PLAY_CORRECT_SIGN;
                     } else {
                         currentState = STATES.PREPARE_FOR_NEXT_ROUND;
                     }
+                    soundController.playSignSound(matchedSign);
                 } else {
                     currentState = STATES.PLAY_INCORRECT_SIGN;
                 }
                 break;
             case PLAY_CORRECT_SIGN:
                 Log.i("STATE", "state: PLAY_CORRECT_SIGN");
-                soundController.playSound(SoundController.SOUNDS.CORRECT);
                 lightRingControl.runSwirl(1, SIGN_DURATION);
                 currentState = STATES.MONITOR_FOR_SIGN;
                 break;
             case PLAY_INCORRECT_SIGN:
                 Log.i("STATE", "state: PLAY_INCORRECT_SIGN");
-                soundController.playSound(SoundController.SOUNDS.INCORRECT);
                 currentState = STATES.LOSS;
                 break;
             case PREPARE_FOR_NEXT_ROUND:

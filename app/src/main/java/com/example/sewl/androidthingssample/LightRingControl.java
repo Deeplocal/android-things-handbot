@@ -13,7 +13,7 @@ import java.io.IOException;
 
 public class LightRingControl {
 
-    private static final int NUMBER_OF_LEDS         = 6;
+    private static final int NUMBER_OF_LEDS         = 12;
     private static final int PULSE_DELAY            = 10;
     private static final int NUMBER_OF_LED_STEPS    = 720;
     public static final String DEFAULT_SPI_BUS      = "SPI3.0";
@@ -73,9 +73,6 @@ public class LightRingControl {
                 double lightness = 0.3f * Math.sin(t * Math.PI - 2*offset);
                 int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, (float) lightness});
                 colors[j] = color;
-                if (Thread.currentThread().isInterrupted()) {
-                    return;
-                }
             }
 
             try {
@@ -123,10 +120,6 @@ public class LightRingControl {
                     illuminate(hsv[0]);
                     deluminate(hsv[0]);
                     numberOfRuns++;
-
-                    if (Thread.currentThread().isInterrupted()) {
-                        return;
-                    }
                 }
                 stopLedThread();
             };
