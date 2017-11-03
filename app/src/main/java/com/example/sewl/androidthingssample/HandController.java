@@ -27,16 +27,16 @@ public class HandController {
     public void init() {
         pwmDriver = new MultiChannelServoDriver();
         pwmDriver.init(PWM_FREQUENCY);
-        thumb = new ThumbController(6, pwmDriver, true);
-        indexFinger = new FingerController(5, pwmDriver, false, 0);
-        middleFinger = new FingerController(4, pwmDriver, false, 0);
-        ringFinger = new FingerController(3, pwmDriver, true, 40);
-        pinky = new FingerController(2, pwmDriver, false, 0);
-        wrist = new WristController(1, pwmDriver);
-        forearm = new ForearmController(0, 0, pwmDriver);
+        thumb = new ThumbController(5, pwmDriver, true);
+        indexFinger = new FingerController(4, pwmDriver, false, 0);
+        middleFinger = new FingerController(2, pwmDriver, false, 0);
+        ringFinger = new FingerController(0, pwmDriver, true, 0);
+        pinky = new FingerController(1, pwmDriver, true, 0);
+        wrist = new WristController(9, pwmDriver);
+        forearm = new ForearmController(6, 8, pwmDriver);
     }
 
-    public void handleAction(String action) {
+    public void handleRPSAction(String action) {
         if (action.contains("rock")) {
             rock();
         } else if (action.contains("scissors")) {
@@ -53,12 +53,20 @@ public class HandController {
             mirrorScissors();
         } else if (action.contains("paper")) {
             mirrorPaper();
+        } else if (action.contains("spiderman")) {
+            spiderman();
+        } else if (action.contains("ok")) {
+            ok();
+        } else if (action.contains("three")) {
+            three();
+        } else if (action.contains("loser")) {
+            loser();
         }
     }
 
     public void runMirror(String action) {
         if (action.contains("rock")) {
-            fist();
+            mirrorRock();
         } else if (action.contains("scissors")) {
             mirrorScissors();
         } else if (action.contains("paper")) {
@@ -66,12 +74,42 @@ public class HandController {
         }
     }
 
+    private void spiderman() {
+        indexFinger.loose();
+        middleFinger.flex();
+        thumb.loose();
+        ringFinger.flex();
+        pinky.loose();
+        forearm.loose();
+        wrist.parallelToGround();
+    }
+
+    private void loser() {
+        indexFinger.loose();
+        middleFinger.flex();
+        thumb.loose();
+        ringFinger.flex();
+        pinky.flex();
+        forearm.loose();
+        wrist.parallelToGround();
+    }
+
+    private void three() {
+        indexFinger.loose();
+        middleFinger.loose();
+        thumb.flex();
+        ringFinger.loose();
+        pinky.flex();
+        forearm.loose();
+        wrist.parallelToGround();
+    }
+
     public void scissors() {
         indexFinger.loose();
         middleFinger.loose();
+        thumb.flex();
         ringFinger.flex();
         pinky.flex();
-        thumb.flex();
         forearm.flex();
         wrist.perpendicularToGround();
     }
@@ -82,7 +120,7 @@ public class HandController {
         ringFinger.flex();
         pinky.flex();
         thumb.flex();
-        forearm.flex();
+        forearm.loose();
         wrist.parallelToGround();
     }
 
@@ -96,23 +134,23 @@ public class HandController {
         wrist.perpendicularToGround();
     }
 
+    public void rpsDownCount() {
+        indexFinger.flex();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.flex();
+        forearm.minorFlex();
+        wrist.perpendicularToGround();
+    }
+
     public void mirrorRock() {
         indexFinger.flex();
         middleFinger.flex();
         ringFinger.flex();
         pinky.flex();
         thumb.flex();
-        forearm.flex();
-        wrist.parallelToGround();
-    }
-
-    public void fist() {
-        indexFinger.flex();
-        middleFinger.flex();
-        ringFinger.flex();
-        pinky.flex();
-        thumb.flex();
-        forearm.flex();
+        forearm.loose();
         wrist.parallelToGround();
     }
 
@@ -123,7 +161,7 @@ public class HandController {
         pinky.loose();
         thumb.loose();
         forearm.flex();
-        wrist.perpendicularToGround();
+        wrist.parallelToGround();
     }
 
     public void mirrorPaper() {
@@ -137,11 +175,13 @@ public class HandController {
     }
 
     public void ok() {
-        middleFinger.setAngle(80);
-        ringFinger.setAngle(100);
-        pinky.setAngle(140);
+        middleFinger.setAngle(150);
+        ringFinger.setAngle(140);
+        pinky.setAngle(130);
         indexFinger.flex();
         thumb.flex();
+        forearm.loose();
+        wrist.parallelToGround();
     }
 
     public void moveToRPSReady() {
@@ -150,8 +190,8 @@ public class HandController {
         ringFinger.flex();
         pinky.flex();
         thumb.flex();
-        forearm.flex();
-        wrist.parallelToGround();
+        forearm.loose();
+        wrist.perpendicularToGround();
     }
 
     public void loose() {
@@ -169,6 +209,9 @@ public class HandController {
         middleFinger.flex();
         ringFinger.flex();
         pinky.flex();
+        thumb.flex();
+        wrist.parallelToGround();
+        forearm.loose();
     }
 
     public void two() {
@@ -176,22 +219,33 @@ public class HandController {
         middleFinger.loose();
         ringFinger.flex();
         pinky.flex();
+        thumb.flex();
+        wrist.parallelToGround();
+        forearm.loose();
     }
 
     public void moveToSimonSaysReady() {
-        middleFinger.loose();
-        ringFinger.loose();
-        pinky.loose();
-        indexFinger.loose();
-        thumb.loose();
-        wrist.parallelToGround();
+        loose();
     }
 
     public void thumbsUp() {
+        indexFinger.flex();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.loose();
+        wrist.perpendicularToGround();
+        forearm.flex();
     }
 
     public void thumbsDown() {
-        moveToRPSReady();
+        indexFinger.flex();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
+        thumb.loose();
+        wrist.parallelToGround();
+        forearm.flex();
     }
 
     public void shutdown() {
@@ -199,11 +253,12 @@ public class HandController {
     }
 
     public void point() {
-        pinky.flex();
-        ringFinger.flex();
-        middleFinger.flex();
         indexFinger.loose();
+        middleFinger.flex();
+        ringFinger.flex();
+        pinky.flex();
         thumb.flex();
         wrist.perpendicularToGround();
+        forearm.flex();
     }
 }

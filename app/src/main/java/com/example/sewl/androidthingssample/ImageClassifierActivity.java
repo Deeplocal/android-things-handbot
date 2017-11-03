@@ -8,13 +8,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 
-import com.google.android.things.contrib.driver.button.Button;
 import com.google.android.things.contrib.driver.button.ButtonInputDriver;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ImageClassifierActivity extends Activity
                                      implements ImageReader.OnImageAvailableListener,
@@ -29,6 +28,10 @@ public class ImageClassifierActivity extends Activity
     private TensorFlowImageClassifier tensorFlowClassifier;
 
     private TensorFlowImageClassifier rpsTensorFlowClassifier;
+
+    private TensorFlowImageClassifier spidermanThreeClassifier;
+
+    private TensorFlowImageClassifier loserOkNegativeClassifier;
 
     private HandlerThread mBackgroundThread;
 
@@ -46,7 +49,11 @@ public class ImageClassifierActivity extends Activity
 
     private ButtonInputDriver mButtonInputDriver;
 
+    private Map<String, TensorFlowImageClassifier> classifiers = new HashMap();
+
     private int handClosed = 0;
+
+    private boolean shouldContinueSim;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -62,28 +69,54 @@ public class ImageClassifierActivity extends Activity
         lightRingControl = new LightRingControl();
         lightRingControl.init();
         imagePreprocessor = new ImagePreprocessor();
+        handController = new HandController();
+        handController.init();
+        rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.RPS_MODEL_FILE, Helper.RPS_LABELS_FILE);
+        spidermanThreeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.SPIDERMAN_THREE_MODEL, Helper.SPIDERMAN_THREE_LABELS);
+        loserOkNegativeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.LOSER_OK_NEG_MODEL, Helper.LOSER_OK_NEG_LABELS);
+        tensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.MODEL_FILE, Helper.LABELS_FILE);
+        standbyController.init(handController, lightRingControl, soundController);
+
+        classifiers.put("spiderman", spidermanThreeClassifier);
+        classifiers.put("three", spidermanThreeClassifier);
+        classifiers.put("rock", rpsTensorFlowClassifier);
+        classifiers.put("paper", rpsTensorFlowClassifier);
+        classifiers.put("scissors", rpsTensorFlowClassifier);
+        classifiers.put("loser", loserOkNegativeClassifier);
+        classifiers.put("ok", loserOkNegativeClassifier);
+        classifiers.put("rps", rpsTensorFlowClassifier);
+        classifiers.put("mirror", rpsTensorFlowClassifier);
+        classifiers.put("simon_says", rpsTensorFlowClassifier);
+
         mBackgroundThread = new HandlerThread("BackgroundThread");
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
         mBackgroundHandler.post(mInitializeOnBackground);
-        handController = new HandController();
-        handController.init();
-        rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.RPS_MODEL_FILE, Helper.RPS_LABELS_FILE);
-        standbyController.init(handController, lightRingControl, soundController);
-        imageClassificationThread = new ImageClassificationThread(rpsTensorFlowClassifier, standbyController);
+
+        imageClassificationThread = new ImageClassificationThread(standbyController, classifiers);
         imageClassificationThread.start();
 
+        handController.ringFinger.flex();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                handController.loose();
+            }
+        }, 2000);
+//        lightRingControl.runScorePulse(5, Color.BLUE);
+//        lightRingControl.showMatchingLights(3, 2);
+//        lightRingControl.runScorePulse(5, 2, 1);
+
         // TODO: Remove me
-        try {
-            mButtonInputDriver = new ButtonInputDriver(
-                    "GPIO_33",
-                    Button.LogicState.PRESSED_WHEN_LOW,
-                    KeyEvent.KEYCODE_SPACE);
-            handController.loose();
-            mButtonInputDriver.register();
-        } catch (IOException e) {
-            Log.e(TAG, "Error configuring GPIO pin", e);
-        }
+//        try {
+//            mButtonInputDriver = new ButtonInputDriver(
+//                    "GPIO_33",
+//                    Button.LogicState.PRESSED_WHEN_LOW,
+//                    KeyEvent.KEYCODE_SPACE);
+//            mButtonInputDriver.register();
+//        } catch (IOException e) {
+//            Log.e(TAG, "Error configuring GPIO pin", e);
+//        }
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {
@@ -94,29 +127,12 @@ public class ImageClassifierActivity extends Activity
                     ImageClassifierActivity.this, mBackgroundHandler,
                     ImageClassifierActivity.this);
             mCameraHandler.setCameraReadyListener(ImageClassifierActivity.this);
-            tensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.MODEL_FILE, Helper.LABELS_FILE);
         }
     };
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-//        soundController.playSound(SoundController.SOUNDS.CORRECT);
-//        this.lightRingControl.runSwirl(1, Color.MAGENTA);
-        handClosed++;
-        if (handClosed == 1) {
-//            handController.rock();
-//            handController.thumb.flex();
-            Log.i("SWIRL", "run: 1");
-            lightRingControl.runSwirl(3);
-//        } else if (handClosed == 2) {
-//            handController.one();
-        } else if (handClosed == 2) {
-            Log.i("SWIRL", "run: 2");
-            lightRingControl.runPulse(3);
-        } else {
-//            handController.loose();
-            handClosed = 0;
-        }
+        soundController.playSound(SoundController.SOUNDS.CORRECT);
         return super.onKeyUp(keyCode, event);
     }
 

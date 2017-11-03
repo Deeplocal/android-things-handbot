@@ -8,14 +8,15 @@ import android.os.Handler;
 
 public class ForearmController {
 
-    private static int FLEXED_ANGLE = 90;
-    private static int LOOSE_ANGLE  = 0;
+    private static int FLEXED_ANGLE       = 20;
+    private static int MINOR_FLEXED_ANGLE = 10;
+    private static int LOOSE_ANGLE        = -5;
 
     private int channel1;
 
     private int channel2;
 
-    private int currentAngle = -1;
+    private int currentAngle = 0;
 
     private MultiChannelServoDriver servoDriver;
 
@@ -28,23 +29,24 @@ public class ForearmController {
     }
 
     public void flex() {
-        if (currentAngle != FLEXED_ANGLE) {
-            setAngle(FLEXED_ANGLE);
-        }
+        setAngle(FLEXED_ANGLE);
+    }
+
+    public void minorFlex() {
+        setAngle(MINOR_FLEXED_ANGLE);
     }
 
     public void loose() {
-        if (currentAngle != LOOSE_ANGLE) {
-            setAngle(LOOSE_ANGLE);
-        }
+        setAngle(LOOSE_ANGLE);
     }
 
     public void setAngle(int angle) {
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {
             if (currentAngle != angle) {
+                int remappedAngle = angle + 40 < 180 ? angle + 40 : 180;
+                servoDriver.setAngle(channel2, 180 - remappedAngle);
                 servoDriver.setAngle(channel1, angle);
-                servoDriver.setAngle(channel2, angle);
             }
             this.currentAngle = angle;
             settleServo();

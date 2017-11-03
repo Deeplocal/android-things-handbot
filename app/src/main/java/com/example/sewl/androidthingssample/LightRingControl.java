@@ -13,11 +13,13 @@ import java.io.IOException;
 
 public class LightRingControl {
 
-    private static final int NUMBER_OF_LEDS         = 12;
-    private static final int PULSE_DELAY            = 10;
-    private static final int NUMBER_OF_LED_STEPS    = 720;
-    public static final String DEFAULT_SPI_BUS      = "SPI3.0";
-    private static final float SWIRL_SECONDS        = 1.5f;
+    private static final int NUMBER_OF_LEDS           = 24;
+    private static final int PULSE_DELAY              = 10;
+    private static final int NUMBER_OF_LED_STEPS      = 720;
+    public static final String DEFAULT_SPI_BUS        = "SPI3.0";
+    public static final long FAST_PULSE_DELAY_MILLIS  = 4;
+    private static final float SWIRL_SECONDS          = 0.5f;
+    private static final long FLASH_DELAY             = 1;
 
     private Thread ledThread;
 
@@ -30,7 +32,7 @@ public class LightRingControl {
 
     public void init() {
         try {
-            mLedstrip = new Apa102(DEFAULT_SPI_BUS, Apa102.Mode.BGR, Apa102.Direction.NORMAL);
+            mLedstrip = new Apa102(DEFAULT_SPI_BUS, Apa102.Mode.RBG, Apa102.Direction.NORMAL);
             mLedstrip.setBrightness(20);
         } catch (IOException e) { }
     }
@@ -39,7 +41,7 @@ public class LightRingControl {
         final float[] hsv = new float[3];
         final long totalMillis = Math.round((totalPulseSeconds / (float) (NUMBER_OF_LED_STEPS)) * 1000);
         Log.i("TOTAL", "millis: " + totalMillis);
-        Color.RGBToHSV((color >> 16)& 0xFF, (color >> 8) & 0xFF, color & 0xFF, hsv);
+        Color.RGBToHSV(Color.red(color), Color.green(color), Color.blue(color), hsv);
         this.totalPulsesToRun = pulsesToRun;
         ledThread = new Thread(new Runnable() {
             @Override
@@ -88,13 +90,15 @@ public class LightRingControl {
         }
     }
 
-    public void setScore(int me, int them) {
+    public void setRPSScore(int me, int them) {
+        int ledsPerMark = NUMBER_OF_LEDS/3;
         int[] colors = new int[NUMBER_OF_LEDS];
-        for (int i = 0; i < me; i++) {
-            colors[i] = Color.BLUE;
+
+        for (int i = 0; i < me*ledsPerMark; i++) {
+            colors[i] = Color.GREEN;
         }
-        for (int i = me; i < me + them; i++) {
-            colors[i] = Color.MAGENTA;
+        for (int i = NUMBER_OF_LEDS - 1; i > (NUMBER_OF_LEDS - 1 - them*ledsPerMark); i--) {
+            colors[i] = Color.RED;
         }
         try {
             mLedstrip.write(colors);
@@ -103,8 +107,29 @@ public class LightRingControl {
         }
     }
 
-    public void runPulse(int pulses) {
-        runPulse(pulses, Color.BLUE);
+    public void showMatchingLights(int number, int wrong) {
+        int ledsPerMark = NUMBER_OF_LEDS/8;
+        int[] colors = new int[NUMBER_OF_LEDS];
+        final float[] hsv = new float[3];
+        Color.RGBToHSV(Color.red(Color.RED), Color.green(Color.RED), Color.blue(Color.RED), hsv);
+        int red = Color.HSVToColor(new float[]{hsv[0], 1.0f, 0.6f});
+        Color.RGBToHSV(Color.red(Color.GREEN), Color.green(Color.GREEN), Color.blue(Color.GREEN), hsv);
+        int green = Color.HSVToColor(new float[]{hsv[0], 1.0f, 0.6f});
+        for (int i = 0; i < number; i++) {
+            colors[i*ledsPerMark] = Color.BLACK;
+            colors[i*ledsPerMark + 1] = green;
+            colors[i*ledsPerMark + 2] = Color.BLACK;
+        }
+        for (int i = number; i < number + wrong; i++) {
+            colors[i*ledsPerMark] = Color.BLACK;
+            colors[i*ledsPerMark + 1] = red;
+            colors[i*ledsPerMark + 2] = Color.BLACK;
+        }
+        try {
+            mLedstrip.write(colors);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void runPulse(int pulses, int color) {
@@ -117,8 +142,8 @@ public class LightRingControl {
             public void run() {
                 int numberOfRuns = 0;
                 while(numberOfRuns < totalPulsesToRun) {
-                    illuminate(hsv[0]);
-                    deluminate(hsv[0]);
+                    illuminate(hsv[0], PULSE_DELAY);
+                    deluminate(hsv[0], PULSE_DELAY);
                     numberOfRuns++;
                 }
                 stopLedThread();
@@ -127,7 +152,100 @@ public class LightRingControl {
         ledThread.start();
     }
 
-    private void illuminate(float ledColor) {
+    public void flash(int pulses, int color) {
+        stopLedThread();
+        totalPulsesToRun = pulses;
+        final float[] hsv = new float[3];
+        Color.RGBToHSV((color >> 16)& 0xFF, (color >> 8) & 0xFF, color & 0xFF, hsv);
+        ledThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int numberOfRuns = 0;
+                while(numberOfRuns < totalPulsesToRun) {
+                    illuminate(hsv[0], FLASH_DELAY);
+                    deluminate(hsv[0], FLASH_DELAY);
+                    numberOfRuns++;
+                }
+                stopLedThread();
+            };
+        });
+        ledThread.start();
+    }
+
+    public void runScorePulse(int pulses, final int right, final int wrong) {
+        stopLedThread();
+        totalPulsesToRun = pulses;
+        final float[] redHsv = new float[3];
+        final float[] greenHsv = new float[3];
+        final int ledsPerMark = NUMBER_OF_LEDS/8;
+        Color.RGBToHSV(Color.red(Color.RED), Color.green(Color.RED), Color.blue(Color.RED), redHsv);
+        Color.RGBToHSV(Color.red(Color.GREEN), Color.green(Color.GREEN), Color.blue(Color.GREEN), greenHsv);
+
+        ledThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                int numberOfRuns = 0;
+                while(numberOfRuns < totalPulsesToRun) {
+                    int[] colors = new int[NUMBER_OF_LEDS];
+                    for (int i = 0; i < 170; i+=2) {
+                        float t = i/360.0f;
+                        int pulseGreen = Color.HSVToColor(new float[]{ greenHsv[0], 1.0f, t*0.6f});
+                        for (int j = 0; j < right; j++) {
+                            colors[j * ledsPerMark] = Color.BLACK;
+                            colors[j * ledsPerMark + 1] = pulseGreen;
+                            colors[j * ledsPerMark + 2] = Color.BLACK;
+                        }
+                        int pulseRed = Color.HSVToColor(new float[]{ redHsv[0], 1.0f, t*0.6f});
+                        for (int j = right; j < right + wrong; j++) {
+                            colors[j * ledsPerMark] = Color.BLACK;
+                            colors[j * ledsPerMark + 1] = pulseRed;
+                            colors[j * ledsPerMark + 2] = Color.BLACK;
+                        }
+                        try {
+                            mLedstrip.write(colors);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        try {
+                            Thread.sleep(FAST_PULSE_DELAY_MILLIS);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+
+                    for (int i = 170; i >= 0; i-=2) {
+                        float t = i/360.0f;
+                        int pulseGreen = Color.HSVToColor(new float[]{ greenHsv[0], 1.0f, t*0.6f});
+                        for (int j = 0; j < right; j++) {
+                            colors[j * ledsPerMark] = Color.BLACK;
+                            colors[j * ledsPerMark + 1] = pulseGreen;
+                            colors[j * ledsPerMark + 2] = Color.BLACK;
+                        }
+                        int pulseRed = Color.HSVToColor(new float[]{ redHsv[0], 1.0f, t*0.6f});
+                        for (int j = right; j < right + wrong; j++) {
+                            colors[j * ledsPerMark] = Color.BLACK;
+                            colors[j * ledsPerMark + 1] = pulseRed;
+                            colors[j * ledsPerMark + 2] = Color.BLACK;
+                        }
+                        try {
+                            mLedstrip.write(colors);
+                        } catch (IOException e) {
+                        }
+
+                        try {
+                            Thread.sleep(FAST_PULSE_DELAY_MILLIS);
+                        } catch (InterruptedException e) {
+                        }
+                    }
+                    numberOfRuns++;
+                }
+                stopLedThread();
+            };
+        });
+        ledThread.start();
+    }
+
+    private void illuminate(float ledColor, long delay) {
         int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 0; i < 170; i+=2) {
             float t = i/360.0f;
@@ -142,13 +260,13 @@ public class LightRingControl {
             }
 
             try {
-                Thread.sleep(PULSE_DELAY);
+                Thread.sleep(delay);
             } catch (InterruptedException e) {
             }
         }
     }
 
-    private void deluminate(float ledColor) {
+    private void deluminate(float ledColor, long delay) {
         int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 170; i >= 0; i-=2) {
             float t = i/360.0f;
@@ -162,7 +280,7 @@ public class LightRingControl {
             }
 
             try {
-                Thread.sleep(PULSE_DELAY);
+                Thread.sleep(delay);
             } catch (InterruptedException e) {
             }
         }

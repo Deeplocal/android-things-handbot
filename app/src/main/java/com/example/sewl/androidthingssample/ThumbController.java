@@ -69,11 +69,11 @@ public class ThumbController {
     private void settleServo(int angleMoved) {
         settleServoHandler.removeCallbacksAndMessages(null);
         long relaxTime = (long) (((float) angleMoved / 180.0f) * 500.0f);
-        settleServoHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                servoDriver.setPWM(channel, 0, SERVO_OFF_VALUE);
-            }
-        }, relaxTime);
+//        settleServoHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                servoDriver.setPWM(channel, 0, SERVO_OFF_VALUE);
+//            }
+//        }, relaxTime);
     }
 }

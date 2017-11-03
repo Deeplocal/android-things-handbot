@@ -11,4 +11,5 @@ public interface Game {
     void start();
     void stop();
     void shutdown();
+    String getClassifierKey();
 }

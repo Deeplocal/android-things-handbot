@@ -7,6 +7,7 @@ import android.os.Message;
 import android.util.Log;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by mderrick on 10/16/17.
@@ -14,9 +15,9 @@ import java.util.List;
 
 public class ImageClassificationThread extends Thread {
 
-    private final StandbyController standbyController;
+    private final Map<String, TensorFlowImageClassifier> classifiers;
 
-    private TensorFlowImageClassifier imageClassifier;
+    private final StandbyController standbyController;
 
     private Handler handler;
 
@@ -24,10 +25,13 @@ public class ImageClassificationThread extends Thread {
 
     private boolean classifyingImage;
 
-    public ImageClassificationThread(TensorFlowImageClassifier imageClassifier, StandbyController standbyController) {
+    private String action;
+
+    public ImageClassificationThread(StandbyController standbyController, Map<String, TensorFlowImageClassifier> classifiers) {
         super("imageClassificationThread");
-        this.imageClassifier = imageClassifier;
         this.standbyController = standbyController;
+        this.action = action;
+        this.classifiers = classifiers;
         currentTime = System.currentTimeMillis();
     }
 
@@ -42,7 +46,8 @@ public class ImageClassificationThread extends Thread {
                     classifyImage((Bitmap) msg.obj);
                 }
             }
-        };        Looper.loop();
+        };
+        Looper.loop();
 
         Looper.myLooper().quit();
     }
@@ -51,12 +56,15 @@ public class ImageClassificationThread extends Thread {
         Log.i("TOOK", "overall: " + (System.currentTimeMillis() - currentTime));
         currentTime = System.currentTimeMillis();
 
-        final List<Classifier.Recognition> results = imageClassifier.doRecognize(bitmap);
-        if (results.size() > 0) {
-            standbyController.run(results.get(0).getTitle(), results);
-            Log.i("RESULTS", imageClassifier.getModelFile() + " : " + results);
+        TensorFlowImageClassifier classifier = classifiers.get(standbyController.getClassifierKey());
+        if (classifier != null) {
+            final List<Classifier.Recognition> results = classifier.doRecognize(bitmap);
+            if (results.size() > 0) {
+                standbyController.run(results.get(0).getTitle(), results);
+                Log.i("RESULTS", classifier.getModelFile() + " : " + results);
+            }
+            classifyingImage = false;
         }
-        classifyingImage = false;
     }
 
     public Handler getHandler() {

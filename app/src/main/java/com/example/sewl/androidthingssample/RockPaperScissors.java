@@ -2,7 +2,6 @@ package com.example.sewl.androidthingssample;
 
 import android.graphics.Color;
 import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -15,12 +14,16 @@ import java.util.Map;
 
 public class RockPaperScissors implements Game {
 
-    public static final int WIN_SAMPLES_NEEDED = 3;
-    private static final long THROW_WAIT_TIME = 600;
+    public static final int WIN_SAMPLES_NEEDED         = 2;
+    private static final long THROW_WAIT_TIME          = 600;
     private static final long WAIT_FOR_NEW_ROUND_DELAY = 800;
-    private static final long START_ROUND_TIME = 1500;
+    private static final long START_ROUND_TIME         = 1500;
+    public static final int MONITOR_TIME               = 2000;
+    private static final int ORANGE                    = 0xFFA500;
 
     private GameStateListener gameStateListener;
+
+    private SoundController soundController;
 
     private HandController handController;
 
@@ -40,12 +43,19 @@ public class RockPaperScissors implements Game {
 
     private String thrownAction;
 
+    private Handler handler;
+
     private static final long ANIMATION_WAIT_TIME = 3000;
 
-    public RockPaperScissors(HandController handController, GameStateListener gameStateListener, LightRingControl lightRingControl) {
+    private Thread rpsThread;
+
+    public RockPaperScissors(HandController handController, GameStateListener gameStateListener,
+                             LightRingControl lightRingControl, SoundController soundController) {
         this.handController = handController;
         this.gameStateListener = gameStateListener;
         this.lightRingControl = lightRingControl;
+        this.soundController = soundController;
+        this.handler = new Handler();
     }
 
     private enum STATES {
@@ -83,8 +93,9 @@ public class RockPaperScissors implements Game {
 
     @Override
     public void start() {
-        lightRingControl.runSwirl(2);
+        lightRingControl.runSwirl(2, Color.BLUE);
         handController.loose();
+        soundController.playSound(SoundController.SOUNDS.START_GAME);
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -100,91 +111,39 @@ public class RockPaperScissors implements Game {
 
     @Override
     public void run(String seenAction, List<Classifier.Recognition> results) {
+        Log.i("STATE", "state: " + currentState);
         if (currentState == STATES.IDLE) {
             resetGame();
-            Log.i("STATE", "IDLE");
         } else if (currentState == STATES.INITIATE) {
-            Log.i("STATE", "STATES.INITIATE");
             resetRound();
-            handController.loose();
+            handController.moveToRPSReady();
             setTransitionTime(START_ROUND_TIME);
             currentState = STATES.INITIATE_WAIT;
         } else if (currentState == STATES.INITIATE_WAIT) {
-            Log.i("STATE", "STATES.INITIATE_WAIT");
             currentState = nextStateForWaitState(STATES.COUNTDOWN);
         } else if (currentState == STATES.COUNTDOWN) {
-            Log.i("STATE", "STATES.COUNTDOWN");
-            currentState = STATES.COUNTDOWN_WAIT;
-            setTransitionTime(2400);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    handController.ringFinger.setAngle(120);
-                }
-            }, 300);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    handController.loose();
-                }
-            }, 600);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    handController.ringFinger.setAngle(120);
-                }
-            }, 1200);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    handController.loose();
-                }
-            }, 1500);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    handController.ringFinger.setAngle(120);
-                }
-            }, 2100);
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    handController.loose();
-                }
-            }, 2400);
-        } else if (currentState == STATES.COUNTDOWN_WAIT) {
-            Log.i("STATE", "STATES.COUNTDOWN_WAIT");
-            currentState = nextStateForWaitState(STATES.THROW);
-        } else if (currentState == STATES.THROW) {
-            Log.i("STATE", "STATES.THROW");
-            setTransitionTime(THROW_WAIT_TIME);
-            thrownAction = ACTIONS[(int)(Math.random() * ACTIONS.length)];
-            handController.handleAction(thrownAction);
+            lightRingControl.setRPSScore(roundWins, roundLosses);
             currentState = STATES.THROW_WAIT;
+            thrownAction = ACTIONS[(int)(Math.random() * ACTIONS.length)];
+            setTransitionTime(2200);
+            runRPSCountdown();
         } else if (currentState == STATES.THROW_WAIT) {
-            Log.i("STATE", "STATES.THROW_WAIT");
             currentState = nextStateForWaitState(STATES.MONITOR);
-        } else if (currentState == STATES.MONITOR) {
-            Log.i("STATE", "STATES.MONITOR: " + seenAction);
-            logAction(seenAction);
-            if (getUserThrow() != null) {
-                currentState = STATES.DETERMINE_ROUND_WINNER;
-            } else if (totalRecordedActions >= 30) {
-                currentState = STATES.LOSS;
+            if (currentState == STATES.MONITOR) {
+                setTransitionTime(MONITOR_TIME);
             }
+        } else if (currentState == STATES.MONITOR) {
+            logAction(seenAction);
+            currentState = nextStateForWaitState(STATES.DETERMINE_ROUND_WINNER);
             totalRecordedActions++;
         } else if (currentState == STATES.DETERMINE_ROUND_WINNER) {
-            Log.i("STATE", "STATES.DETERMINE_ROUND_WINNER");
             String userThrow = getUserThrow();
             GAME_RESULTS gameResults = getGameResults(userThrow);
+            Log.i("STATE", "vs: " + thrownAction + " vs " + userThrow);
             if (gameResults == GAME_RESULTS.WIN) {
-                Log.i("STATE", "win: " + thrownAction + " vs " + userThrow);
                 roundWins++;
             } else if (gameResults == GAME_RESULTS.LOSS) {
-                Log.i("STATE", "loss: " + thrownAction + " vs " + userThrow);
                 roundLosses++;
-            } else {
-                Log.i("STATE", "tie: " + thrownAction + " vs " + userThrow);
             }
 
             if (gameOver()) {
@@ -192,39 +151,93 @@ public class RockPaperScissors implements Game {
             } else {
                 setTransitionTime(WAIT_FOR_NEW_ROUND_DELAY);
                 currentState = STATES.WAIT_FOR_NEW_ROUND;
+                if (gameResults == GAME_RESULTS.TIE) {
+                    lightRingControl.flash(1, ORANGE);
+                    soundController.playSound(SoundController.SOUNDS.TIE);
+                } else if (gameResults == GAME_RESULTS.WIN) {
+                    soundController.playSound(SoundController.SOUNDS.ROUND_WIN);
+                } else {
+                    soundController.playSound(SoundController.SOUNDS.ROUND_LOSS);
+                }
             }
-            lightRingControl.setScore(roundWins, roundLosses);
+            lightRingControl.setRPSScore(roundWins, roundLosses);
         } else if (currentState == STATES.WIN) {
-            Log.i("RPS_STATE", "STATES.WIN");
-            lightRingControl.runSwirl(5, Color.BLUE);
+            soundController.playSound(SoundController.SOUNDS.WIN);
+            lightRingControl.runSwirl(3, Color.GREEN);
             setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.LOSS) {
-            Log.i("RPS_STATE", "STATES.LOSS");
-            lightRingControl.runSwirl(5, Color.MAGENTA);
+            soundController.playSound(SoundController.SOUNDS.LOSS);
+            lightRingControl.runSwirl(3, Color.RED);
             setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.WAIT_FOR_NEW_GAME;
         } else if (currentState == STATES.WAIT_FOR_NEW_ROUND) {
-            Log.i("RPS_STATE", "STATES.WAIT_FOR_NEW_ROUND");
             currentState = nextStateForWaitState(STATES.INITIATE);
         } else if (currentState == STATES.WAIT_FOR_NEW_GAME) {
-            Log.i("RPS_STATE", "STATES.WAIT_FOR_NEW_GAME");
             currentState = nextStateForWaitState(STATES.END_GAME);
         } else if (currentState == STATES.END_GAME) {
-            Log.i("RPS_STATE", "STATES.END_GAME");
             handController.loose();
             setTransitionTime(ANIMATION_WAIT_TIME);
             currentState = STATES.END_GAME_WAIT;
         } else if (currentState == STATES.END_GAME_WAIT) {
-            Log.i("RPS_STATE", "STATES.END_GAME_WAIT");
             currentState = nextStateForWaitState(STATES.GAME_OVER);
         } else if (currentState == STATES.GAME_OVER) {
-            lightRingControl.setScore(0, 0);
+            lightRingControl.setRPSScore(0, 0);
             if (gameStateListener != null) {
                 gameStateListener.gameFinished();
             }
             currentState = STATES.IDLE;
         }
+    }
+
+    private void runRPSCountdown() {
+        final int sleepTime = 350;
+        final int pauseTime = 200;
+        final int afterSoundTime = 100;
+        rpsThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                soundController.playSound(SoundController.SOUNDS.RPS_BING);
+                sleep(afterSoundTime);
+                handController.rpsDownCount();
+                sleep(pauseTime);
+                handController.moveToRPSReady();
+                sleep(sleepTime);
+                soundController.playSound(SoundController.SOUNDS.RPS_BING);
+                sleep(afterSoundTime);
+                handController.rpsDownCount();
+                sleep(pauseTime);
+                handController.moveToRPSReady();
+                sleep(sleepTime);
+                soundController.playSound(SoundController.SOUNDS.RPS_BING);
+                sleep(afterSoundTime);
+                handController.rpsDownCount();
+                sleep(pauseTime);
+                handController.moveToRPSReady();
+                sleep(sleepTime);
+                soundController.playSound(SoundController.SOUNDS.RPS_BONG);
+                sleep(afterSoundTime);
+                handController.handleRPSAction(thrownAction);
+
+                if (rpsThread != null) {
+                    rpsThread.interrupt();
+                }
+            }
+
+            private void sleep(long time) {
+                try {
+                    Thread.sleep(time);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        rpsThread.start();
+    }
+
+    @Override
+    public String getClassifierKey() {
+        return "rps";
     }
 
     private boolean gameOver() {
@@ -233,6 +246,10 @@ public class RockPaperScissors implements Game {
     }
 
     private GAME_RESULTS getGameResults(String seenAction) {
+        if (seenAction == null) {
+            return GAME_RESULTS.TIE;
+        }
+
         if (seenAction.equals("rock")) {
             if (thrownAction.equals("rock")) {
                 return GAME_RESULTS.TIE;
@@ -262,18 +279,22 @@ public class RockPaperScissors implements Game {
     }
 
     private String getUserThrow() {
+        int mostSamples = 0;
+        String mostSampledAction = null;
         for (String action : ACTIONS) {
-            if (monitoredActions.containsKey(action) && monitoredActions.get(action) >= WIN_SAMPLES_NEEDED) {
-                return action;
+            boolean actionOccured = monitoredActions.containsKey(action);
+            if (actionOccured && monitoredActions.get(action) > mostSamples) {
+                mostSampledAction = action;
+                mostSamples = monitoredActions.get(action);
             }
         }
-        return null;
+        return mostSampledAction;
     }
 
     private void resetGame() {
         roundLosses = 0;
         roundWins = 0;
-        lightRingControl.setScore(0, 0);
+        lightRingControl.setRPSScore(0, 0);
     }
 
     private void setTransitionTime(long delay) {
@@ -294,6 +315,10 @@ public class RockPaperScissors implements Game {
     }
 
     private void logAction(String seenAction) {
+        if ("negative".equals(seenAction)) {
+            return;
+        }
+
         if (!monitoredActions.containsKey(seenAction)) {
             monitoredActions.put(seenAction, 0);
         }

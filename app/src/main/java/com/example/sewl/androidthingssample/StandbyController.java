@@ -50,6 +50,7 @@ public class StandbyController implements GameStateListener {
         this.lightRingControl = lightRingControl;
         this.soundController = soundController;
         this.currentState = STATES.MIRROR;
+        handController.loose();
     }
 
     public void run(String action, List<Classifier.Recognition> results) {
@@ -79,13 +80,22 @@ public class StandbyController implements GameStateListener {
         currentState = STATES.MIRROR;
     }
 
+    public String getClassifierKey() {
+        if (currentState == STATES.IDLE) {
+            return null;
+        } else if (currentState == STATES.MIRROR) {
+            return "mirror";
+        } else {
+            return currentGame != null ? currentGame.getClassifierKey() : null;
+        }
+    }
+
     private void startGame() {
         if ("rock".equals(lastMirroredAction)) {
             currentState = STATES.ROCK_PAPER_SCISSORS;
-//            currentGame = new RockPaperScissors(handController, this, lightRingControl);
-            currentGame = new SimonSays(handController, this, soundController, lightRingControl);
+            currentGame = new RockPaperScissors(handController, this, lightRingControl, soundController);
             currentGame.start();
-        } else if ("paper".equals(lastMirroredAction)) {
+        } else if ("scissors".equals(lastMirroredAction)) {
             currentState = STATES.MATCHING;
             currentGame = new SimonSays(handController, this, soundController, lightRingControl);
             currentGame.start();
@@ -110,7 +120,6 @@ public class StandbyController implements GameStateListener {
             consecutiveMirroredActions = 0;
         }
         lastMirroredAction = action;
-        // TODO: Re-enable
         handController.runMirror(action);
     }
 
@@ -135,7 +144,7 @@ public class StandbyController implements GameStateListener {
         }
         seenActions++;
 
-        if (results.get(0).getConfidence() < 0.85f) {
+        if (results.get(0).getConfidence() < 0.50f) {
             return;
         }
 
