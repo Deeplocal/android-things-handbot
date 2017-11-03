@@ -37,40 +37,56 @@ public class HandController {
     }
 
     public void handleRPSAction(String action) {
-        if (action.contains("rock")) {
-            rock();
-        } else if (action.contains("scissors")) {
-            scissors();
-        } else if (action.contains("paper")) {
-            paper();
+        switch (action) {
+            case Signs.ROCK:
+                rock();
+                break;
+            case Signs.SCISSORS:
+                scissors();
+                break;
+            case Signs.PAPER:
+                paper();
+                break;
         }
     }
 
     public void handleSimonSaysAction(String action) {
-        if (action.contains("rock")) {
-            mirrorRock();
-        } else if (action.contains("scissors")) {
-            mirrorScissors();
-        } else if (action.contains("paper")) {
-            mirrorPaper();
-        } else if (action.contains("spiderman")) {
-            spiderman();
-        } else if (action.contains("ok")) {
-            ok();
-        } else if (action.contains("three")) {
-            three();
-        } else if (action.contains("loser")) {
-            loser();
+        switch (action) {
+            case Signs.ROCK:
+                mirrorRock();
+                break;
+            case Signs.SCISSORS:
+                mirrorScissors();
+                break;
+            case Signs.PAPER:
+                mirrorPaper();
+                break;
+            case Signs.SPIDERMAN:
+                spiderman();
+                break;
+            case Signs.OK:
+                ok();
+                break;
+            case Signs.THREE:
+                three();
+                break;
+            case Signs.LOSER:
+                loser();
+                break;
         }
     }
 
     public void runMirror(String action) {
-        if (action.contains("rock")) {
-            mirrorRock();
-        } else if (action.contains("scissors")) {
-            mirrorScissors();
-        } else if (action.contains("paper")) {
-            mirrorPaper();
+        switch (action) {
+            case Signs.ROCK:
+                mirrorRock();
+                break;
+            case Signs.SCISSORS:
+                mirrorScissors();
+                break;
+            case Signs.PAPER:
+                mirrorPaper();
+                break;
         }
     }
 

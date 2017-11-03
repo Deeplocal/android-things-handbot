@@ -77,13 +77,13 @@ public class ImageClassifierActivity extends Activity
         tensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.MODEL_FILE, Helper.LABELS_FILE);
         standbyController.init(handController, lightRingControl, soundController);
 
-        classifiers.put("spiderman", spidermanThreeClassifier);
-        classifiers.put("three", spidermanThreeClassifier);
-        classifiers.put("rock", rpsTensorFlowClassifier);
-        classifiers.put("paper", rpsTensorFlowClassifier);
-        classifiers.put("scissors", rpsTensorFlowClassifier);
-        classifiers.put("loser", loserOkNegativeClassifier);
-        classifiers.put("ok", loserOkNegativeClassifier);
+        classifiers.put(Signs.SPIDERMAN, spidermanThreeClassifier);
+        classifiers.put(Signs.THREE, spidermanThreeClassifier);
+        classifiers.put(Signs.ROCK, rpsTensorFlowClassifier);
+        classifiers.put(Signs.PAPER, rpsTensorFlowClassifier);
+        classifiers.put(Signs.SCISSORS, rpsTensorFlowClassifier);
+        classifiers.put(Signs.LOSER, loserOkNegativeClassifier);
+        classifiers.put(Signs.OK, loserOkNegativeClassifier);
         classifiers.put("rps", rpsTensorFlowClassifier);
         classifiers.put("mirror", rpsTensorFlowClassifier);
         classifiers.put("simon_says", rpsTensorFlowClassifier);
@@ -96,27 +96,13 @@ public class ImageClassifierActivity extends Activity
         imageClassificationThread = new ImageClassificationThread(standbyController, classifiers);
         imageClassificationThread.start();
 
-        handController.ringFinger.flex();
+        handController.mirrorRock();
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 handController.loose();
             }
         }, 2000);
-//        lightRingControl.runScorePulse(5, Color.BLUE);
-//        lightRingControl.showMatchingLights(3, 2);
-//        lightRingControl.runScorePulse(5, 2, 1);
-
-        // TODO: Remove me
-//        try {
-//            mButtonInputDriver = new ButtonInputDriver(
-//                    "GPIO_33",
-//                    Button.LogicState.PRESSED_WHEN_LOW,
-//                    KeyEvent.KEYCODE_SPACE);
-//            mButtonInputDriver.register();
-//        } catch (IOException e) {
-//            Log.e(TAG, "Error configuring GPIO pin", e);
-//        }
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {

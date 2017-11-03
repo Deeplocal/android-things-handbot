@@ -32,8 +32,8 @@ public class SimonSays implements Game {
 
     private long currentTime;
 
-    private String[] ACTIONS = new String[] { "rock", "scissors", "spiderman", "three", "loser" };
-//    private String[] ACTIONS = new String[] { "rock", "scissors" };
+    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS, Signs.SPIDERMAN, Signs.THREE, Signs.LOSER };
+//    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS };
 
     private static final int DEFAULT_SIGNS = 3;
 
@@ -269,7 +269,7 @@ public class SimonSays implements Game {
     }
 
     private void logAction(String seenAction, List<Classifier.Recognition> results) {
-        if (results.size() > 0 && results.get(0).getConfidence() > MIN_SIGN_CONFIDENCE && !"negative".equals(seenAction)) {
+        if (results.size() > 0 && results.get(0).getConfidence() > MIN_SIGN_CONFIDENCE && !Signs.NEGATIVE.equals(seenAction)) {
             if (!monitoredActions.containsKey(seenAction)) {
                 monitoredActions.put(seenAction, 0);
             }

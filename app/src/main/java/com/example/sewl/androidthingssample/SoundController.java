@@ -53,13 +53,13 @@ public class SoundController {
     }
 
     public void playSignSound(String action) {
-        if ("rock".equals(action)) {
+        if (Signs.ROCK.equals(action)) {
             play(R.raw.c_l_tone);
-        } else if ("scissors".equals(action)) {
+        } else if (Signs.SCISSORS.equals(action)) {
             play(R.raw.c_h_tone);
-        } else if ("paper".equals(action)) {
+        } else if (Signs.PAPER.equals(action)) {
             play(R.raw.a_tone);
-        } else if ("spiderman".equals(action)) {
+        } else if (Signs.SPIDERMAN.equals(action)) {
             play(R.raw.g_tone);
         } else {
             play(R.raw.b_tone);

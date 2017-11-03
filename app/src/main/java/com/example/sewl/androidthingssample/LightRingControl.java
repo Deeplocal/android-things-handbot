@@ -240,7 +240,7 @@ public class LightRingControl {
                     numberOfRuns++;
                 }
                 stopLedThread();
-            };
+            }
         });
         ledThread.start();
     }

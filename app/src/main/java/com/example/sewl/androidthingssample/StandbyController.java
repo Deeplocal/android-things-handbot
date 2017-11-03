@@ -29,7 +29,7 @@ public class StandbyController implements GameStateListener {
 
     private int consecutiveMirroredActions;
 
-    private List<String> GAME_START_ACTIONS = Lists.newArrayList("rock", "scissors");
+    private List<String> GAME_START_ACTIONS = Lists.newArrayList(Signs.ROCK, Signs.SCISSORS);
 
     private LightRingControl lightRingControl;
 
@@ -91,11 +91,11 @@ public class StandbyController implements GameStateListener {
     }
 
     private void startGame() {
-        if ("rock".equals(lastMirroredAction)) {
+        if (Signs.ROCK.equals(lastMirroredAction)) {
             currentState = STATES.ROCK_PAPER_SCISSORS;
             currentGame = new RockPaperScissors(handController, this, lightRingControl, soundController);
             currentGame.start();
-        } else if ("scissors".equals(lastMirroredAction)) {
+        } else if (Signs.SCISSORS.equals(lastMirroredAction)) {
             currentState = STATES.MATCHING;
             currentGame = new SimonSays(handController, this, soundController, lightRingControl);
             currentGame.start();

@@ -39,7 +39,7 @@ public class RockPaperScissors implements Game {
 
     private long timeToTransition = System.currentTimeMillis();
 
-    private String[] ACTIONS = new String[] { "rock", "paper", "scissors" };
+    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.PAPER, Signs.SCISSORS };
 
     private String thrownAction;
 
@@ -63,8 +63,6 @@ public class RockPaperScissors implements Game {
         INITIATE,
         INITIATE_WAIT,
         COUNTDOWN,
-        COUNTDOWN_WAIT,
-        THROW,
         THROW_WAIT,
         MONITOR,
         DETERMINE_ROUND_WINNER,
@@ -112,81 +110,96 @@ public class RockPaperScissors implements Game {
     @Override
     public void run(String seenAction, List<Classifier.Recognition> results) {
         Log.i("STATE", "state: " + currentState);
-        if (currentState == STATES.IDLE) {
-            resetGame();
-        } else if (currentState == STATES.INITIATE) {
-            resetRound();
-            handController.moveToRPSReady();
-            setTransitionTime(START_ROUND_TIME);
-            currentState = STATES.INITIATE_WAIT;
-        } else if (currentState == STATES.INITIATE_WAIT) {
-            currentState = nextStateForWaitState(STATES.COUNTDOWN);
-        } else if (currentState == STATES.COUNTDOWN) {
-            lightRingControl.setRPSScore(roundWins, roundLosses);
-            currentState = STATES.THROW_WAIT;
-            thrownAction = ACTIONS[(int)(Math.random() * ACTIONS.length)];
-            setTransitionTime(2200);
-            runRPSCountdown();
-        } else if (currentState == STATES.THROW_WAIT) {
-            currentState = nextStateForWaitState(STATES.MONITOR);
-            if (currentState == STATES.MONITOR) {
-                setTransitionTime(MONITOR_TIME);
-            }
-        } else if (currentState == STATES.MONITOR) {
-            logAction(seenAction);
-            currentState = nextStateForWaitState(STATES.DETERMINE_ROUND_WINNER);
-            totalRecordedActions++;
-        } else if (currentState == STATES.DETERMINE_ROUND_WINNER) {
-            String userThrow = getUserThrow();
-            GAME_RESULTS gameResults = getGameResults(userThrow);
-            Log.i("STATE", "vs: " + thrownAction + " vs " + userThrow);
-            if (gameResults == GAME_RESULTS.WIN) {
-                roundWins++;
-            } else if (gameResults == GAME_RESULTS.LOSS) {
-                roundLosses++;
-            }
-
-            if (gameOver()) {
-                currentState = roundWins > roundLosses ? STATES.WIN : STATES.LOSS;
-            } else {
-                setTransitionTime(WAIT_FOR_NEW_ROUND_DELAY);
-                currentState = STATES.WAIT_FOR_NEW_ROUND;
-                if (gameResults == GAME_RESULTS.TIE) {
-                    lightRingControl.flash(1, ORANGE);
-                    soundController.playSound(SoundController.SOUNDS.TIE);
-                } else if (gameResults == GAME_RESULTS.WIN) {
-                    soundController.playSound(SoundController.SOUNDS.ROUND_WIN);
-                } else {
-                    soundController.playSound(SoundController.SOUNDS.ROUND_LOSS);
+        switch (currentState) {
+            case IDLE:
+                resetGame();
+                break;
+            case INITIATE:
+                resetRound();
+                handController.moveToRPSReady();
+                setTransitionTime(START_ROUND_TIME);
+                currentState = STATES.INITIATE_WAIT;
+                break;
+            case INITIATE_WAIT:
+                currentState = nextStateForWaitState(STATES.COUNTDOWN);
+                break;
+            case COUNTDOWN:
+                lightRingControl.setRPSScore(roundWins, roundLosses);
+                currentState = STATES.THROW_WAIT;
+                thrownAction = ACTIONS[(int)(Math.random() * ACTIONS.length)];
+                setTransitionTime(2200);
+                runRPSCountdown();
+                break;
+            case THROW_WAIT:
+                currentState = nextStateForWaitState(STATES.MONITOR);
+                if (currentState == STATES.MONITOR) {
+                    setTransitionTime(MONITOR_TIME);
                 }
-            }
-            lightRingControl.setRPSScore(roundWins, roundLosses);
-        } else if (currentState == STATES.WIN) {
-            soundController.playSound(SoundController.SOUNDS.WIN);
-            lightRingControl.runSwirl(3, Color.GREEN);
-            setTransitionTime(ANIMATION_WAIT_TIME);
-            currentState = STATES.WAIT_FOR_NEW_GAME;
-        } else if (currentState == STATES.LOSS) {
-            soundController.playSound(SoundController.SOUNDS.LOSS);
-            lightRingControl.runSwirl(3, Color.RED);
-            setTransitionTime(ANIMATION_WAIT_TIME);
-            currentState = STATES.WAIT_FOR_NEW_GAME;
-        } else if (currentState == STATES.WAIT_FOR_NEW_ROUND) {
-            currentState = nextStateForWaitState(STATES.INITIATE);
-        } else if (currentState == STATES.WAIT_FOR_NEW_GAME) {
-            currentState = nextStateForWaitState(STATES.END_GAME);
-        } else if (currentState == STATES.END_GAME) {
-            handController.loose();
-            setTransitionTime(ANIMATION_WAIT_TIME);
-            currentState = STATES.END_GAME_WAIT;
-        } else if (currentState == STATES.END_GAME_WAIT) {
-            currentState = nextStateForWaitState(STATES.GAME_OVER);
-        } else if (currentState == STATES.GAME_OVER) {
-            lightRingControl.setRPSScore(0, 0);
-            if (gameStateListener != null) {
-                gameStateListener.gameFinished();
-            }
-            currentState = STATES.IDLE;
+                break;
+            case MONITOR:
+                logAction(seenAction);
+                currentState = nextStateForWaitState(STATES.DETERMINE_ROUND_WINNER);
+                totalRecordedActions++;
+                break;
+            case DETERMINE_ROUND_WINNER:
+                String userThrow = getUserThrow();
+                GAME_RESULTS gameResults = getGameResults(userThrow);
+                Log.i("STATE", "vs: " + thrownAction + " vs " + userThrow);
+                if (gameResults == GAME_RESULTS.WIN) {
+                    roundWins++;
+                } else if (gameResults == GAME_RESULTS.LOSS) {
+                    roundLosses++;
+                }
+
+                if (gameOver()) {
+                    currentState = roundWins > roundLosses ? STATES.WIN : STATES.LOSS;
+                } else {
+                    setTransitionTime(WAIT_FOR_NEW_ROUND_DELAY);
+                    currentState = STATES.WAIT_FOR_NEW_ROUND;
+                    if (gameResults == GAME_RESULTS.TIE) {
+                        lightRingControl.flash(1, ORANGE);
+                        soundController.playSound(SoundController.SOUNDS.TIE);
+                    } else if (gameResults == GAME_RESULTS.WIN) {
+                        soundController.playSound(SoundController.SOUNDS.ROUND_WIN);
+                    } else {
+                        soundController.playSound(SoundController.SOUNDS.ROUND_LOSS);
+                    }
+                }
+                lightRingControl.setRPSScore(roundWins, roundLosses);
+                break;
+            case WIN:
+                soundController.playSound(SoundController.SOUNDS.WIN);
+                lightRingControl.runSwirl(3, Color.GREEN);
+                setTransitionTime(ANIMATION_WAIT_TIME);
+                currentState = STATES.WAIT_FOR_NEW_GAME;
+                break;
+            case LOSS:
+                soundController.playSound(SoundController.SOUNDS.LOSS);
+                lightRingControl.runSwirl(3, Color.RED);
+                setTransitionTime(ANIMATION_WAIT_TIME);
+                currentState = STATES.WAIT_FOR_NEW_GAME;
+                break;
+            case WAIT_FOR_NEW_ROUND:
+                currentState = nextStateForWaitState(STATES.INITIATE);
+                break;
+            case WAIT_FOR_NEW_GAME:
+                currentState = nextStateForWaitState(STATES.END_GAME);
+                break;
+            case END_GAME:
+                handController.loose();
+                setTransitionTime(ANIMATION_WAIT_TIME);
+                currentState = STATES.END_GAME_WAIT;
+                break;
+            case END_GAME_WAIT:
+                currentState = nextStateForWaitState(STATES.GAME_OVER);
+                break;
+            case GAME_OVER:
+                lightRingControl.setRPSScore(0, 0);
+                if (gameStateListener != null) {
+                    gameStateListener.gameFinished();
+                }
+                currentState = STATES.IDLE;
+                break;
         }
     }
 
@@ -194,6 +207,8 @@ public class RockPaperScissors implements Game {
         final int sleepTime = 350;
         final int pauseTime = 200;
         final int afterSoundTime = 100;
+
+        //  Weird timing thread to handle the rps-countdown
         rpsThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -250,26 +265,26 @@ public class RockPaperScissors implements Game {
             return GAME_RESULTS.TIE;
         }
 
-        if (seenAction.equals("rock")) {
-            if (thrownAction.equals("rock")) {
+        if (seenAction.equals(Signs.ROCK)) {
+            if (thrownAction.equals(Signs.ROCK)) {
                 return GAME_RESULTS.TIE;
-            } else if (thrownAction.equals("paper")) {
+            } else if (thrownAction.equals(Signs.PAPER)) {
                 return GAME_RESULTS.LOSS;
             } else {
                 return GAME_RESULTS.WIN;
             }
-        } else if (seenAction.equals("paper")) {
-            if (thrownAction.equals("rock")) {
+        } else if (seenAction.equals(Signs.PAPER)) {
+            if (thrownAction.equals(Signs.ROCK)) {
                 return GAME_RESULTS.WIN;
-            } else if (thrownAction.equals("paper")) {
+            } else if (thrownAction.equals(Signs.PAPER)) {
                 return GAME_RESULTS.TIE;
             } else {
                 return GAME_RESULTS.LOSS;
             }
-        } else if (seenAction.equals("scissors")) {
-            if (thrownAction.equals("rock")) {
+        } else if (seenAction.equals(Signs.SCISSORS)) {
+            if (thrownAction.equals(Signs.ROCK)) {
                 return GAME_RESULTS.LOSS;
-            } else if (thrownAction.equals("paper")) {
+            } else if (thrownAction.equals(Signs.PAPER)) {
                 return GAME_RESULTS.WIN;
             } else {
                 return GAME_RESULTS.TIE;
@@ -282,8 +297,8 @@ public class RockPaperScissors implements Game {
         int mostSamples = 0;
         String mostSampledAction = null;
         for (String action : ACTIONS) {
-            boolean actionOccured = monitoredActions.containsKey(action);
-            if (actionOccured && monitoredActions.get(action) > mostSamples) {
+            boolean actionOccurred = monitoredActions.containsKey(action);
+            if (actionOccurred && monitoredActions.get(action) > mostSamples) {
                 mostSampledAction = action;
                 mostSamples = monitoredActions.get(action);
             }
@@ -315,7 +330,7 @@ public class RockPaperScissors implements Game {
     }
 
     private void logAction(String seenAction) {
-        if ("negative".equals(seenAction)) {
+        if (Signs.NEGATIVE.equals(seenAction)) {
             return;
         }
 
