@@ -2,16 +2,20 @@ package com.example.sewl.androidthingssample;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.util.Log;
 import android.view.KeyEvent;
 
+import com.google.android.things.contrib.driver.button.Button;
 import com.google.android.things.contrib.driver.button.ButtonInputDriver;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,13 +29,11 @@ public class ImageClassifierActivity extends Activity
 
     private CameraHandler mCameraHandler;
 
-    private TensorFlowImageClassifier tensorFlowClassifier;
-
     private TensorFlowImageClassifier rpsTensorFlowClassifier;
 
-    private TensorFlowImageClassifier spidermanThreeClassifier;
+    private TensorFlowImageClassifier loserSpidermanClassifier;
 
-    private TensorFlowImageClassifier loserOkNegativeClassifier;
+    private TensorFlowImageClassifier okThreeClassifier;
 
     private HandlerThread mBackgroundThread;
 
@@ -51,9 +53,18 @@ public class ImageClassifierActivity extends Activity
 
     private Map<String, TensorFlowImageClassifier> classifiers = new HashMap();
 
-    private int handClosed = 0;
+    private int keyPresses = 0;
 
-    private boolean shouldContinueSim;
+    private STATES currentState = STATES.IDLE;
+
+    private SettingsRepository settingsRepository;
+
+    private enum STATES {
+        IDLE,
+        STARTUP,
+        CONFIGURE,
+        RUN
+    }
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -64,26 +75,27 @@ public class ImageClassifierActivity extends Activity
     }
 
     private void init() {
+        settingsRepository = new SettingsRepository(this);
         standbyController = new StandbyController();
         soundController = new SoundController(this);
         lightRingControl = new LightRingControl();
         lightRingControl.init();
         imagePreprocessor = new ImagePreprocessor();
         handController = new HandController();
-        handController.init();
+        handController.init(settingsRepository);
         rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.RPS_MODEL_FILE, Helper.RPS_LABELS_FILE);
-        spidermanThreeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.SPIDERMAN_THREE_MODEL, Helper.SPIDERMAN_THREE_LABELS);
-        loserOkNegativeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.LOSER_OK_NEG_MODEL, Helper.LOSER_OK_NEG_LABELS);
-        tensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.MODEL_FILE, Helper.LABELS_FILE);
+        loserSpidermanClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.LOSER_SPIDERMAN_MODEL, Helper.LOSER_SPIDERMAN_LABELS);
+        okThreeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.OK_THREE_MODEL, Helper.OK_THREE_LABELS);
         standbyController.init(handController, lightRingControl, soundController);
 
-        classifiers.put(Signs.SPIDERMAN, spidermanThreeClassifier);
-        classifiers.put(Signs.THREE, spidermanThreeClassifier);
+        // Use a different specific classifier for actions that don't play well together
+        classifiers.put(Signs.SPIDERMAN, loserSpidermanClassifier);
+        classifiers.put(Signs.THREE, okThreeClassifier);
+        classifiers.put(Signs.OK, okThreeClassifier);
         classifiers.put(Signs.ROCK, rpsTensorFlowClassifier);
         classifiers.put(Signs.PAPER, rpsTensorFlowClassifier);
         classifiers.put(Signs.SCISSORS, rpsTensorFlowClassifier);
-        classifiers.put(Signs.LOSER, loserOkNegativeClassifier);
-        classifiers.put(Signs.OK, loserOkNegativeClassifier);
+        classifiers.put(Signs.LOSER, loserSpidermanClassifier);
         classifiers.put("rps", rpsTensorFlowClassifier);
         classifiers.put("mirror", rpsTensorFlowClassifier);
         classifiers.put("simon_says", rpsTensorFlowClassifier);
@@ -93,16 +105,30 @@ public class ImageClassifierActivity extends Activity
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
         mBackgroundHandler.post(mInitializeOnBackground);
 
-        imageClassificationThread = new ImageClassificationThread(standbyController, classifiers);
+        imageClassificationThread = new ImageClassificationThread(standbyController, classifiers, lightRingControl);
         imageClassificationThread.start();
 
-        handController.mirrorRock();
+        lightRingControl.setColor(Color.BLACK);
+        handController.loose();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                handController.moveToRPSReady();
+            }
+        }, 600);
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 handController.loose();
             }
-        }, 2000);
+        }, 1200);
+
+        try {
+            mButtonInputDriver = new ButtonInputDriver("GPIO_33", Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE);
+            mButtonInputDriver.register();
+        } catch (IOException e) {
+            Log.e(TAG, "Error configuring GPIO pin", e);
+        }
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {
@@ -118,8 +144,27 @@ public class ImageClassifierActivity extends Activity
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        soundController.playSound(SoundController.SOUNDS.CORRECT);
+        keyPresses++;
+        if (keyPresses >= 3 && currentState == STATES.STARTUP) {
+            currentState = STATES.CONFIGURE;
+            lightRingControl.setColor(Color.CYAN);
+            soundController.playSound(SoundController.SOUNDS.CORRECT);
+            runFlexForearmTest();
+        } else if (currentState == STATES.CONFIGURE) {
+            settingsRepository.incrementForearmOffset();
+            runFlexForearmTest();
+        }
         return super.onKeyUp(keyCode, event);
+    }
+
+    private void runFlexForearmTest() {
+        handController.forearm.flex();
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                handController.forearm.loose();
+            }
+        }, 500);
     }
 
     @Override
@@ -153,7 +198,9 @@ public class ImageClassifierActivity extends Activity
             if (mCameraHandler != null) mCameraHandler.shutDown();
         } catch (Throwable t) { }
         try {
-            if (tensorFlowClassifier != null) tensorFlowClassifier.destroyClassifier();
+            if (rpsTensorFlowClassifier != null) rpsTensorFlowClassifier.destroyClassifier();
+            if (loserSpidermanClassifier != null) loserSpidermanClassifier.destroyClassifier();
+            if (okThreeClassifier != null) okThreeClassifier.destroyClassifier();
         } catch (Throwable t) { }
     }
 

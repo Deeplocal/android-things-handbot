@@ -8,10 +8,10 @@ import android.os.Handler;
 
 public class WristController {
 
-    private static int THUMBS_DOWN_FLEX = 0;
-    private static int FLEXED_ANGLE     = 90;
-    private static int LOOSE_ANGLE      = 170;
-    public static final int SERVO_OFF_VALUE = 0;
+    private static int THUMBS_DOWN_FLEX         = 0;
+    private static int FLEXED_ANGLE             = 0;
+    private static int LOOSE_ANGLE              = 112;
+    public static final int SERVO_OFF_VALUE     = 0;
 
     private int channel;
 
@@ -20,6 +20,8 @@ public class WristController {
     private MultiChannelServoDriver servoDriver;
 
     private Handler settleServoHandler = new Handler();
+
+    private boolean isEnabled = true;
 
     public WristController(int channel, MultiChannelServoDriver servoDriver) {
         this.channel = channel;
@@ -39,6 +41,10 @@ public class WristController {
     }
 
     public void setAngle(int angle) {
+        if (!isEnabled) {
+            return;
+        }
+
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {
             int diff = Math.abs(angle - currentAngle);
@@ -48,6 +54,14 @@ public class WristController {
             this.currentAngle = angle;
             settleServo(diff);
         }
+    }
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
     }
 
     private void settleServo(int angleMoved) {

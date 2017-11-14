@@ -29,8 +29,16 @@ public class MultiChannelServoDriver {
     private static final byte LED0_OFF_H        = 0x09;
     private static final int SERVO_MIN_ANGLE    = 0;
     private static final int SERVO_MAX_ANGLE    = 180;
-    private static final int SERVO_MIN          = 150;
-    private static final int SERVO_MAX          = 700;
+
+//    private static final int SERVO_MIN          = 150;
+//    private static final int SERVO_MAX          = 700;
+
+//      HS-5085
+    // (900/(20ms/4096))
+    private static final int SERVO_MIN          = 184;
+    // (2100/(20ms/4096))
+    private static final int SERVO_MAX          = 430;
+
     private static final int WRIST_SERVO_MIN    = 150;
     private static final int WRIST_SERVO_MAX    = 600;
 
@@ -44,7 +52,7 @@ public class MultiChannelServoDriver {
         } else {
             openConnection(deviceList.get(0));
             writeReg(PCA9685_MODE1, RESET);
-            setPWMFrequency(60.0d);
+            setPWMFrequency(50.0d);
         }
     }
 

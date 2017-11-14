@@ -91,8 +91,8 @@ public class RockPaperScissors implements Game {
 
     @Override
     public void start() {
-        lightRingControl.runSwirl(2, Color.BLUE);
-        handController.loose();
+        lightRingControl.runSwirl(1, Color.BLUE);
+        handController.moveToRPSReady();
         soundController.playSound(SoundController.SOUNDS.START_GAME);
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -116,7 +116,6 @@ public class RockPaperScissors implements Game {
                 break;
             case INITIATE:
                 resetRound();
-                handController.moveToRPSReady();
                 setTransitionTime(START_ROUND_TIME);
                 currentState = STATES.INITIATE_WAIT;
                 break;
@@ -165,6 +164,7 @@ public class RockPaperScissors implements Game {
                         soundController.playSound(SoundController.SOUNDS.ROUND_LOSS);
                     }
                 }
+                handController.moveToRPSReady();
                 lightRingControl.setRPSScore(roundWins, roundLosses);
                 break;
             case WIN:

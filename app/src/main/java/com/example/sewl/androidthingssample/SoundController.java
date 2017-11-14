@@ -19,7 +19,8 @@ public class SoundController {
         RPS_BING,
         RPS_BONG,
         ROUND_WIN,
-        ROUND_LOSS
+        ROUND_LOSS,
+        MIRROR
     }
 
     private Context context;
@@ -47,6 +48,8 @@ public class SoundController {
             play(R.raw.game_loss);
         } else if (sound == SOUNDS.ROUND_WIN) {
             play(R.raw.success_tone);
+        } else if (sound == SOUNDS.MIRROR) {
+            play(R.raw.mirror_simon_says);
         } else if (sound == SOUNDS.ROUND_LOSS) {
             play(R.raw.round_loss);
         }
@@ -68,7 +71,7 @@ public class SoundController {
 
     private void play(int sound) {
         MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
-        mediaPlayer.setVolume(0.7f, 0.7f);
+        mediaPlayer.setVolume(0.1f, 0.1f);
         mediaPlayer.setLooping(false);
         mediaPlayer.start();
     }

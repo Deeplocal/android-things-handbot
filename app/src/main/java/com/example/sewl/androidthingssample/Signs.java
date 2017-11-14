@@ -12,5 +12,6 @@ public interface Signs {
     String OK        = "ok";
     String LOSER     = "loser";
     String THREE     = "three";
+    String ONE       = "one";
     String NEGATIVE  = "negative";
 }

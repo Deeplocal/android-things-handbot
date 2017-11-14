@@ -24,16 +24,18 @@ public class HandController {
 
     public WristController wrist;
 
-    public void init() {
+    public void init(SettingsRepository settingsRepository) {
         pwmDriver = new MultiChannelServoDriver();
         pwmDriver.init(PWM_FREQUENCY);
-        thumb = new ThumbController(5, pwmDriver, true);
+
+        thumb = new ThumbController(8, pwmDriver, true);
         indexFinger = new FingerController(4, pwmDriver, false, 0);
         middleFinger = new FingerController(2, pwmDriver, false, 0);
-        ringFinger = new FingerController(0, pwmDriver, true, 0);
-        pinky = new FingerController(1, pwmDriver, true, 0);
+        ringFinger = new FingerController(0, pwmDriver, false, 0);
+        pinky = new FingerController(5, pwmDriver, false, 0);
+
         wrist = new WristController(9, pwmDriver);
-        forearm = new ForearmController(6, 8, pwmDriver);
+        forearm = new ForearmController(12, 13, pwmDriver, settingsRepository);
     }
 
     public void handleRPSAction(String action) {

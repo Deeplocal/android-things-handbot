@@ -29,26 +29,26 @@ import java.util.PriorityQueue;
 
 public class Helper {
 
-    public static final int IMAGE_SIZE = 128;
-    public static final int IMAGE_MEAN = 0;
-    public static final float IMAGE_STD = 255;
-    public static final String LABELS_FILE = "retrained_labels_0.25_nob.txt";
-    public static final String RPS_LABELS_FILE = "retrained_labels_rps_neg.txt";
-    public static final String SPIDERMAN_THREE_LABELS = "retrained_labels_spi_thr_ne.txt";
-    public static final String LOSER_OK_NEG_LABELS = "retrained_labels_lo_ok_ne.txt";
-    public static final String MODEL_FILE = "file:///android_asset/retrained_graph_0.25_nob.pb";
-    public static final String RPS_MODEL_FILE = "file:///android_asset/retrained_graph_rps_neg.pb";
-    public static final String SPIDERMAN_THREE_MODEL = "file:///android_asset/retrained_graph_spi_thr_ne.pb";
-    public static final String LOSER_OK_NEG_MODEL = "file:///android_asset/retrained_graph_lo_ok_ne.pb";
-    public static final String INPUT_NAME = "input:0";
-    public static final String OUTPUT_OPERATION = "final_result";
-    public static final String OUTPUT_NAME = OUTPUT_OPERATION + ":0";
-    public static final String[] OUTPUT_NAMES = { OUTPUT_NAME };
-    public static final long[] NETWORK_STRUCTURE = {1, IMAGE_SIZE, IMAGE_SIZE, 3};
-    public static final int NUM_CLASSES = 1008;
+    public static final int IMAGE_SIZE                  = 128;
+    public static final int IMAGE_MEAN                  = 0;
+    public static final float IMAGE_STD                 = 255;
+    public static final String RPS_LABELS_FILE          = "retrained_labels_rps_many_samples.txt";
+//    public static final String RPS_LABELS_FILE          = "retrained_labels_rps_laplacian.txt";
+    public static final String LOSER_SPIDERMAN_LABELS   = "retrained_labels_loser_spiderman_final.txt";
+    public static final String OK_THREE_LABELS          = "retrained_labels_ok_three_final.txt";
+    public static final String RPS_MODEL_FILE           = "file:///android_asset/retrained_graph_rps_many_samples.pb";
+//    public static final String RPS_MODEL_FILE           = "file:///android_asset/retrained_graph_rps_laplacian.pb";
+    public static final String LOSER_SPIDERMAN_MODEL    = "file:///android_asset/retrained_graph_loser_spiderman_final.pb";
+    public static final String OK_THREE_MODEL           = "file:///android_asset/retrained_graph_ok_three_final.pb";
+    public static final String INPUT_NAME               = "input:0";
+    public static final String OUTPUT_OPERATION         = "final_result";
+    public static final String OUTPUT_NAME              = OUTPUT_OPERATION + ":0";
+    public static final String[] OUTPUT_NAMES           = { OUTPUT_NAME };
+    public static final long[] NETWORK_STRUCTURE        = {1, IMAGE_SIZE, IMAGE_SIZE, 3};
+    public static final int NUM_CLASSES                 = 1008;
 
-    public static final int MAX_BEST_RESULTS = 3;
-    private static final float RESULT_CONFIDENCE_THRESHOLD = 0.1f;
+    public static final int MAX_BEST_RESULTS            = 3;
+    private static final float RES_CONFIDENCE_THRESHOLD = 0.1f;
 
     public static String[] readLabels(Context context, String labelFile) {
         AssetManager assetManager = context.getAssets();
@@ -61,7 +61,7 @@ public class Helper {
             }
             return result.toArray(new String[result.size()]);
         } catch (IOException ex) {
-            throw new IllegalStateException("Cannot read labels from " + LABELS_FILE);
+            throw new IllegalStateException("Cannot read labels from " + labelFile);
         }
     }
 
@@ -77,7 +77,7 @@ public class Helper {
                 });
 
         for (int i = 0; i < confidenceLevels.length; ++i) {
-            if (confidenceLevels[i] > RESULT_CONFIDENCE_THRESHOLD) {
+            if (confidenceLevels[i] > RES_CONFIDENCE_THRESHOLD) {
                 pq.add(new Classifier.Recognition("" + i, labels[i], confidenceLevels[i]));
             }
         }

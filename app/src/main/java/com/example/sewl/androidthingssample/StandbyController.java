@@ -1,5 +1,8 @@
 package com.example.sewl.androidthingssample;
 
+import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.google.common.collect.Lists;
@@ -35,14 +38,19 @@ public class StandbyController implements GameStateListener {
 
     private SoundController soundController;
 
+    private Handler pulseHandler;
+
     private int seenActions = 0;
 
-    private enum STATES {
+    private int consecutiveNegativeActions;
+
+    public enum STATES {
         IDLE,
         ROCK_PAPER_SCISSORS,
         MATCHING,
-        MIRROR;
-
+        MIRROR,
+        START_RUN_PULSE,
+        PULSE
     }
 
     public void init(final HandController handController, LightRingControl lightRingControl, SoundController soundController) {
@@ -50,12 +58,14 @@ public class StandbyController implements GameStateListener {
         this.lightRingControl = lightRingControl;
         this.soundController = soundController;
         this.currentState = STATES.MIRROR;
-        handController.loose();
+        this.pulseHandler = new Handler(Looper.getMainLooper());
+        lightRingControl.runPulse(1, Color.BLUE);
     }
 
     public void run(String action, List<Classifier.Recognition> results) {
+        Log.i("STATE", "standby: " + currentState);
         if (currentState == STATES.MIRROR) {
-            logAction(action, results);
+            logMirrorAction(action, results);
 
             if (shouldStartGame()) {
                 clearLoggedActions();
@@ -68,6 +78,18 @@ public class StandbyController implements GameStateListener {
             runGame(action, results);
         } else if (currentState == STATES.MATCHING) {
             runGame(action, results);
+        } else if (currentState == STATES.START_RUN_PULSE) {
+            lightRingControl.runPulse(1, Color.BLUE);
+            runPulse();
+            currentState = STATES.MIRROR;
+        } else if (currentState == STATES.PULSE) {
+            runPulseState(action, results);
+        }
+    }
+
+    private void runPulseState(String action, List<Classifier.Recognition> results) {
+        if (!Signs.NEGATIVE.equals(action) && results.get(0).getConfidence() > 0.7f) {
+            currentState = STATES.MIRROR;
         }
     }
 
@@ -85,9 +107,23 @@ public class StandbyController implements GameStateListener {
             return null;
         } else if (currentState == STATES.MIRROR) {
             return "mirror";
+        } else if (currentState == STATES.START_RUN_PULSE) {
+            return "rps";
+        } else if (currentState == STATES.PULSE) {
+            return "rps";
         } else {
             return currentGame != null ? currentGame.getClassifierKey() : null;
         }
+    }
+
+    private void runPulse() {
+        pulseHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                lightRingControl.runPulse(1, Color.BLUE);
+                runPulse();
+            }
+        }, 3000);
     }
 
     private void startGame() {
@@ -113,7 +149,6 @@ public class StandbyController implements GameStateListener {
     }
 
     private void runMirror(String action) {
-        Log.i("MIRROR_STATE", "run: " + action);
         if (action.equals(lastMirroredAction)) {
             consecutiveMirroredActions++;
         } else {
@@ -138,8 +173,21 @@ public class StandbyController implements GameStateListener {
         return null;
     }
 
-    private void logAction(String seenAction, List<Classifier.Recognition> results) {
-        if (seenActions >= 25) {
+    private void logMirrorAction(String seenAction, List<Classifier.Recognition> results) {
+//        if (seenAction.equals(Signs.NEGATIVE) && results.get(0).getConfidence() >= 0.5f) {
+//            consecutiveNegativeActions++;
+//            if (consecutiveNegativeActions >= 20) {
+//                currentState = STATES.START_RUN_PULSE;
+//                clearLoggedActions();
+//                consecutiveNegativeActions = 0;
+//                return;
+//            }
+//        } else {
+//            consecutiveNegativeActions = 0;
+//            pulseHandler.removeCallbacksAndMessages(null);
+//        }
+
+        if (seenActions >= 30) {
             clearLoggedActions();
         }
         seenActions++;
@@ -149,7 +197,7 @@ public class StandbyController implements GameStateListener {
         }
 
         if (!monitoredActions.containsKey(seenAction)) {
-            monitoredActions.put(   seenAction, 0);
+            monitoredActions.put(seenAction, 0);
         }
 
         Integer oldValue = monitoredActions.get(seenAction);

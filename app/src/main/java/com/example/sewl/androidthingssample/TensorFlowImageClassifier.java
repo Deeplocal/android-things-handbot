@@ -59,11 +59,6 @@ public class TensorFlowImageClassifier implements Classifier {
      *              and power consuming.
      */
     public List<Classifier.Recognition> doRecognize(Bitmap image) {
-//        Matrix matrix = new Matrix();
-//        matrix.postScale(1, -1, image.getWidth()/2, image.getHeight()/2);
-//        matrix.postRotate(180);
-
-//        float[] pixels = Helper.getPixels(Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight(), matrix, true), intValues, floatValues);
         float[] pixels = Helper.getPixels(Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight()), intValues, floatValues);
 
         // Feed the pixels of the image into the TensorFlow Neural Network

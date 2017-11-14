@@ -17,7 +17,7 @@ public class SimonSays implements Game {
 
     private static final Integer SAMPLES_PER_THROW         = 3;
     private static final int MAX_ROUNDS                    = 5;
-    private static final long MOVE_TO_READY_WAIT_TIME      = 500;
+    private static final long MOVE_TO_READY_WAIT_TIME      = 1200;
     private static final long SHOW_SIGN_WAIT_TIME          = 900;
     private static final long END_GAME_WAIT_TIME           = 2000;
     private static final long MONITOR_FOR_SIGN_WAIT_TIME   = 2500;
@@ -32,7 +32,7 @@ public class SimonSays implements Game {
 
     private long currentTime;
 
-    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS, Signs.SPIDERMAN, Signs.THREE, Signs.LOSER };
+    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS, Signs.SPIDERMAN, Signs.LOSER, Signs.THREE };
 //    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS };
 
     private static final int DEFAULT_SIGNS = 3;
@@ -78,6 +78,7 @@ public class SimonSays implements Game {
         PAUSE_BETWEEN_SIGN,
         PAUSE_BETWEEN_SIGN_WAIT,
         DETERMINE_IF_MORE_SIGNS_TO_SHOW,
+        PAUSE_BEFORE_MONITORING,
         MONITOR_FOR_SIGN,
         DETERMINE_SIGN_CORRECT,
         PLAY_CORRECT_SIGN,
@@ -113,6 +114,7 @@ public class SimonSays implements Game {
                 showedSigns = 0;
                 generateSigns();
                 lightRingControl.runScorePulse(2, signsToShow.size(), 0);
+                soundController.playSound(SoundController.SOUNDS.MIRROR);
                 currentState = STATES.CHOOSE_SIGNS_WAIT;
                 setTransitionTime(CHOOSE_SIGNS_WAIT_DELAY);
                 break;
@@ -141,7 +143,15 @@ public class SimonSays implements Game {
                 currentState = nextStateForWaitState(STATES.DETERMINE_IF_MORE_SIGNS_TO_SHOW);
                 break;
             case DETERMINE_IF_MORE_SIGNS_TO_SHOW:
-                currentState = signsToShow.size() > 0 ? STATES.SHOW_SIGN : STATES.MONITOR_FOR_SIGN;
+                currentState = signsToShow.size() > 0 ? STATES.SHOW_SIGN : STATES.PAUSE_BEFORE_MONITORING;
+                if (currentState == STATES.PAUSE_BEFORE_MONITORING) {
+                    lightRingControl.runScorePulse(2, signsToMatch.size(), 0);
+                    soundController.playSound(SoundController.SOUNDS.MIRROR);
+                    setTransitionTime(MONITOR_FOR_SIGN_WAIT_TIME);
+                }
+                break;
+            case PAUSE_BEFORE_MONITORING:
+                currentState = nextStateForWaitState(STATES.MONITOR_FOR_SIGN);
                 if (currentState == STATES.MONITOR_FOR_SIGN) {
                     setTransitionTime(MONITOR_FOR_SIGN_WAIT_TIME);
                 }

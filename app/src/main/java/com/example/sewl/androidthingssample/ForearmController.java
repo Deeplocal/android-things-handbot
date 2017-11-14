@@ -8,9 +8,10 @@ import android.os.Handler;
 
 public class ForearmController {
 
-    private static int FLEXED_ANGLE       = 20;
-    private static int MINOR_FLEXED_ANGLE = 10;
-    private static int LOOSE_ANGLE        = -5;
+    public static int DEFAULT_MOTOR_SYNC_OFFSET  = 40;
+    private static int FLEXED_ANGLE              = 20;
+    private static int MINOR_FLEXED_ANGLE        = 10;
+    private static int LOOSE_ANGLE               = -10;
 
     private int channel1;
 
@@ -22,10 +23,15 @@ public class ForearmController {
 
     private Handler settleServoHandler = new Handler();
 
-    public ForearmController(int channel1, int channel2, MultiChannelServoDriver servoDriver) {
+    private boolean isEnabled = true;
+
+    private SettingsRepository settingsRepository;
+
+    public ForearmController(int channel1, int channel2, MultiChannelServoDriver servoDriver, SettingsRepository settingsRepository) {
         this.channel1 = channel1;
         this.channel2 = channel2;
         this.servoDriver = servoDriver;
+        this.settingsRepository = settingsRepository;
     }
 
     public void flex() {
@@ -41,16 +47,31 @@ public class ForearmController {
     }
 
     public void setAngle(int angle) {
+        if (!isEnabled) {
+            return;
+        }
+
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {
             if (currentAngle != angle) {
-                int remappedAngle = angle + 40 < 180 ? angle + 40 : 180;
+                int currentMotorOffset = settingsRepository.getForearmServoOffset();
+                int remappedAngle = angle + currentMotorOffset < 180 ? angle + currentMotorOffset : 180;
                 servoDriver.setAngle(channel2, 180 - remappedAngle);
                 servoDriver.setAngle(channel1, angle);
             }
             this.currentAngle = angle;
-            settleServo();
+            if (angle == LOOSE_ANGLE) {
+                settleServo();
+            }
         }
+    }
+
+    public boolean isEnabled() {
+        return isEnabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        isEnabled = enabled;
     }
 
     private void settleServo() {

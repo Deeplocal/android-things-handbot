@@ -63,7 +63,7 @@ public class FingerController {
                 int diff = Math.abs(remapped - currentAngle);
                 servoDriver.setAngle(channel, remapped);
                 this.currentAngle = remapped;
-                if (angle == FLEXED_ANGLE || angle == LOOSE_ANGLE) {
+                if (angle == LOOSE_ANGLE) {
                    settleServo(diff);
                 }
             }

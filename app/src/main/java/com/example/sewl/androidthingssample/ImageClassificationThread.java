@@ -19,6 +19,8 @@ public class ImageClassificationThread extends Thread {
 
     private final StandbyController standbyController;
 
+    private final LightRingControl lightRingControl;
+
     private Handler handler;
 
     private long currentTime;
@@ -27,11 +29,12 @@ public class ImageClassificationThread extends Thread {
 
     private String action;
 
-    public ImageClassificationThread(StandbyController standbyController, Map<String, TensorFlowImageClassifier> classifiers) {
+    public ImageClassificationThread(StandbyController standbyController, Map<String, TensorFlowImageClassifier> classifiers, LightRingControl lightRingControl) {
         super("imageClassificationThread");
         this.standbyController = standbyController;
         this.action = action;
         this.classifiers = classifiers;
+        this.lightRingControl = lightRingControl;
         currentTime = System.currentTimeMillis();
     }
 
@@ -61,7 +64,7 @@ public class ImageClassificationThread extends Thread {
             final List<Classifier.Recognition> results = classifier.doRecognize(bitmap);
             if (results.size() > 0) {
                 standbyController.run(results.get(0).getTitle(), results);
-                Log.i("RESULTS", classifier.getModelFile() + " : " + results);
+                Log.i("Tensorflow", "results: " + results);
             }
             classifyingImage = false;
         }

@@ -1,7 +1,6 @@
 package com.example.sewl.androidthingssample;
 
 import android.graphics.Color;
-import android.util.Log;
 
 import com.google.android.things.contrib.driver.apa102.Apa102;
 
@@ -40,7 +39,6 @@ public class LightRingControl {
     public void runSwirl(int pulsesToRun, final int color, final float totalPulseSeconds) {
         final float[] hsv = new float[3];
         final long totalMillis = Math.round((totalPulseSeconds / (float) (NUMBER_OF_LED_STEPS)) * 1000);
-        Log.i("TOTAL", "millis: " + totalMillis);
         Color.RGBToHSV(Color.red(color), Color.green(color), Color.blue(color), hsv);
         this.totalPulsesToRun = pulsesToRun;
         ledThread = new Thread(new Runnable() {
@@ -59,10 +57,6 @@ public class LightRingControl {
 
     public void runSwirl(int pulsesToRun, final int color) {
         runSwirl(pulsesToRun, color, SWIRL_SECONDS);
-    }
-
-    public void runSwirl(int pulsesToRun) {
-        runSwirl(pulsesToRun, Color.BLUE, SWIRL_SECONDS);
     }
 
     private void swirl(float ledColor, long pulseDelay) {
@@ -115,21 +109,26 @@ public class LightRingControl {
         int red = Color.HSVToColor(new float[]{hsv[0], 1.0f, 0.6f});
         Color.RGBToHSV(Color.red(Color.GREEN), Color.green(Color.GREEN), Color.blue(Color.GREEN), hsv);
         int green = Color.HSVToColor(new float[]{hsv[0], 1.0f, 0.6f});
+
         for (int i = 0; i < number; i++) {
-            colors[i*ledsPerMark] = Color.BLACK;
-            colors[i*ledsPerMark + 1] = green;
-            colors[i*ledsPerMark + 2] = Color.BLACK;
+            colors[shiftLedIndex(i*ledsPerMark)] = Color.BLACK;
+            colors[shiftLedIndex(i*ledsPerMark + 1)] = green;
+            colors[shiftLedIndex(i*ledsPerMark + 2)] = Color.BLACK;
         }
         for (int i = number; i < number + wrong; i++) {
-            colors[i*ledsPerMark] = Color.BLACK;
-            colors[i*ledsPerMark + 1] = red;
-            colors[i*ledsPerMark + 2] = Color.BLACK;
+            colors[shiftLedIndex(i*ledsPerMark)] = Color.BLACK;
+            colors[shiftLedIndex(i*ledsPerMark + 1)] = red;
+            colors[shiftLedIndex(i*ledsPerMark + 2)] = Color.BLACK;
         }
         try {
             mLedstrip.write(colors);
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private int shiftLedIndex(int index) {
+        return (index + Math.round(NUMBER_OF_LEDS * 0.70f)) % NUMBER_OF_LEDS;
     }
 
     public void runPulse(int pulses, int color) {
@@ -191,15 +190,15 @@ public class LightRingControl {
                         float t = i/360.0f;
                         int pulseGreen = Color.HSVToColor(new float[]{ greenHsv[0], 1.0f, t*0.6f});
                         for (int j = 0; j < right; j++) {
-                            colors[j * ledsPerMark] = Color.BLACK;
-                            colors[j * ledsPerMark + 1] = pulseGreen;
-                            colors[j * ledsPerMark + 2] = Color.BLACK;
+                            colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
+                            colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseGreen;
+                            colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
                         }
                         int pulseRed = Color.HSVToColor(new float[]{ redHsv[0], 1.0f, t*0.6f});
                         for (int j = right; j < right + wrong; j++) {
-                            colors[j * ledsPerMark] = Color.BLACK;
-                            colors[j * ledsPerMark + 1] = pulseRed;
-                            colors[j * ledsPerMark + 2] = Color.BLACK;
+                            colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
+                            colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseRed;
+                            colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
                         }
                         try {
                             mLedstrip.write(colors);
@@ -217,15 +216,15 @@ public class LightRingControl {
                         float t = i/360.0f;
                         int pulseGreen = Color.HSVToColor(new float[]{ greenHsv[0], 1.0f, t*0.6f});
                         for (int j = 0; j < right; j++) {
-                            colors[j * ledsPerMark] = Color.BLACK;
-                            colors[j * ledsPerMark + 1] = pulseGreen;
-                            colors[j * ledsPerMark + 2] = Color.BLACK;
+                            colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
+                            colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseGreen;
+                            colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
                         }
                         int pulseRed = Color.HSVToColor(new float[]{ redHsv[0], 1.0f, t*0.6f});
                         for (int j = right; j < right + wrong; j++) {
-                            colors[j * ledsPerMark] = Color.BLACK;
-                            colors[j * ledsPerMark + 1] = pulseRed;
-                            colors[j * ledsPerMark + 2] = Color.BLACK;
+                            colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
+                            colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseRed;
+                            colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
                         }
                         try {
                             mLedstrip.write(colors);
@@ -295,6 +294,19 @@ public class LightRingControl {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public void setColor(int color) {
+        int[] colors = new int[NUMBER_OF_LEDS];
+
+        for (int i = 0; i < NUMBER_OF_LEDS; i++) {
+            colors[i] = color;
+        }
+        try {
+            mLedstrip.write(colors);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
