@@ -1,4 +1,0 @@
-paper
-negative
-rock
-scissors
