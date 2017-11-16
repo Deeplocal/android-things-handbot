@@ -19,22 +19,16 @@ public class ImageClassificationThread extends Thread {
 
     private final StandbyController standbyController;
 
-    private final LightRingControl lightRingControl;
-
     private Handler handler;
 
     private long currentTime;
 
     private boolean classifyingImage;
 
-    private String action;
-
     public ImageClassificationThread(StandbyController standbyController, Map<String, TensorFlowImageClassifier> classifiers, LightRingControl lightRingControl) {
         super("imageClassificationThread");
         this.standbyController = standbyController;
-        this.action = action;
         this.classifiers = classifiers;
-        this.lightRingControl = lightRingControl;
         currentTime = System.currentTimeMillis();
     }
 

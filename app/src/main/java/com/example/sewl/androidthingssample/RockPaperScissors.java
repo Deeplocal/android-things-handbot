@@ -109,7 +109,6 @@ public class RockPaperScissors implements Game {
 
     @Override
     public void run(String seenAction, List<Classifier.Recognition> results) {
-        Log.i("STATE", "state: " + currentState);
         switch (currentState) {
             case IDLE:
                 resetGame();

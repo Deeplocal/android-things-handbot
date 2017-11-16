@@ -17,7 +17,6 @@ import static android.content.ContentValues.TAG;
 
 public class MultiChannelServoDriver {
 
-    private static final String I2C_DEVICE_NAME = "";
     private static final boolean ENABLE_SERVOS  = true;
     private static final byte I2C_ADDRESS       = 0x41;
     private static final byte PCA9685_MODE1     = 0x00;
@@ -27,24 +26,17 @@ public class MultiChannelServoDriver {
     private static final byte LED0_ON_H         = 0x07;
     private static final byte LED0_OFF_L        = 0x08;
     private static final byte LED0_OFF_H        = 0x09;
-    private static final int SERVO_MIN_ANGLE    = 0;
     private static final int SERVO_MAX_ANGLE    = 180;
 
-//    private static final int SERVO_MIN          = 150;
-//    private static final int SERVO_MAX          = 700;
-
-//      HS-5085
+    //  HS-5085 Servos
     // (900/(20ms/4096))
     private static final int SERVO_MIN          = 184;
     // (2100/(20ms/4096))
     private static final int SERVO_MAX          = 430;
 
-    private static final int WRIST_SERVO_MIN    = 150;
-    private static final int WRIST_SERVO_MAX    = 600;
-
     private I2cDevice i2cDevice;
 
-    public void init(final int frequency) {
+    public void init() {
         PeripheralManagerService manager = new PeripheralManagerService();
         final List<String> deviceList = manager.getI2cBusList();
         if (deviceList.isEmpty()) {
@@ -57,7 +49,6 @@ public class MultiChannelServoDriver {
     }
 
     public void setAngle(final int channel, int angle) {
-//        int off = (int) ((angle / (float) servoMax) * (servoMax - servoMin)) + servoMin;
         int off = (int) ((angle / (float) SERVO_MAX_ANGLE) * (SERVO_MAX - SERVO_MIN)) + SERVO_MIN;
         setPWM(channel, 0, off);
     }

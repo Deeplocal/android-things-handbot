@@ -1,9 +1,6 @@
 package com.example.sewl.androidthingssample;
 
 import android.graphics.Color;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
 
 import com.google.common.collect.Lists;
 
@@ -38,19 +35,13 @@ public class StandbyController implements GameStateListener {
 
     private SoundController soundController;
 
-    private Handler pulseHandler;
-
     private int seenActions = 0;
-
-    private int consecutiveNegativeActions;
 
     public enum STATES {
         IDLE,
         ROCK_PAPER_SCISSORS,
         MATCHING,
-        MIRROR,
-        START_RUN_PULSE,
-        PULSE
+        MIRROR
     }
 
     public void init(final HandController handController, LightRingControl lightRingControl, SoundController soundController) {
@@ -58,12 +49,10 @@ public class StandbyController implements GameStateListener {
         this.lightRingControl = lightRingControl;
         this.soundController = soundController;
         this.currentState = STATES.MIRROR;
-        this.pulseHandler = new Handler(Looper.getMainLooper());
         lightRingControl.runPulse(1, Color.BLUE);
     }
 
     public void run(String action, List<Classifier.Recognition> results) {
-        Log.i("STATE", "standby: " + currentState);
         if (currentState == STATES.MIRROR) {
             logMirrorAction(action, results);
 
@@ -78,12 +67,6 @@ public class StandbyController implements GameStateListener {
             runGame(action, results);
         } else if (currentState == STATES.MATCHING) {
             runGame(action, results);
-        } else if (currentState == STATES.START_RUN_PULSE) {
-            lightRingControl.runPulse(1, Color.BLUE);
-            runPulse();
-            currentState = STATES.MIRROR;
-        } else if (currentState == STATES.PULSE) {
-            runPulseState(action, results);
         }
     }
 
@@ -107,23 +90,9 @@ public class StandbyController implements GameStateListener {
             return null;
         } else if (currentState == STATES.MIRROR) {
             return "mirror";
-        } else if (currentState == STATES.START_RUN_PULSE) {
-            return "rps";
-        } else if (currentState == STATES.PULSE) {
-            return "rps";
         } else {
             return currentGame != null ? currentGame.getClassifierKey() : null;
         }
-    }
-
-    private void runPulse() {
-        pulseHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                lightRingControl.runPulse(1, Color.BLUE);
-                runPulse();
-            }
-        }, 3000);
     }
 
     private void startGame() {
@@ -174,19 +143,6 @@ public class StandbyController implements GameStateListener {
     }
 
     private void logMirrorAction(String seenAction, List<Classifier.Recognition> results) {
-//        if (seenAction.equals(Signs.NEGATIVE) && results.get(0).getConfidence() >= 0.5f) {
-//            consecutiveNegativeActions++;
-//            if (consecutiveNegativeActions >= 20) {
-//                currentState = STATES.START_RUN_PULSE;
-//                clearLoggedActions();
-//                consecutiveNegativeActions = 0;
-//                return;
-//            }
-//        } else {
-//            consecutiveNegativeActions = 0;
-//            pulseHandler.removeCallbacksAndMessages(null);
-//        }
-
         if (seenActions >= 30) {
             clearLoggedActions();
         }

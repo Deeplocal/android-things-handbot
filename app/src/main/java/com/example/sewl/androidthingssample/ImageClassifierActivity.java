@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 
 import com.google.android.things.contrib.driver.button.Button;
@@ -23,7 +22,7 @@ public class ImageClassifierActivity extends Activity
                                      implements ImageReader.OnImageAvailableListener,
                                                 CameraHandler.CameraReadyListener {
 
-    private static final String TAG = ImageClassifierActivity.class.getSimpleName();
+    public static final String CONFIG_BUTTON_GPPIO = "GPIO_33";
 
     private ImagePreprocessor imagePreprocessor;
 
@@ -62,8 +61,7 @@ public class ImageClassifierActivity extends Activity
     private enum STATES {
         IDLE,
         STARTUP,
-        CONFIGURE,
-        RUN
+        CONFIGURE
     }
 
     @Override
@@ -109,6 +107,12 @@ public class ImageClassifierActivity extends Activity
         imageClassificationThread.start();
 
         lightRingControl.setColor(Color.BLACK);
+
+        runHandInit();
+        setupConfigButton();
+    }
+
+    private void runHandInit() {
         handController.loose();
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -122,13 +126,13 @@ public class ImageClassifierActivity extends Activity
                 handController.loose();
             }
         }, 1200);
+    }
 
+    private void setupConfigButton() {
         try {
-            mButtonInputDriver = new ButtonInputDriver("GPIO_33", Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE);
+            mButtonInputDriver = new ButtonInputDriver(CONFIG_BUTTON_GPPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE);
             mButtonInputDriver.register();
-        } catch (IOException e) {
-            Log.e(TAG, "Error configuring GPIO pin", e);
-        }
+        } catch (IOException e) {}
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {

@@ -6,15 +6,10 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.media.ThumbnailUtils;
-import android.os.Environment;
-import android.util.Log;
 
 import junit.framework.Assert;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -32,12 +27,10 @@ public class Helper {
     public static final int IMAGE_SIZE                  = 128;
     public static final int IMAGE_MEAN                  = 0;
     public static final float IMAGE_STD                 = 255;
-    public static final String RPS_LABELS_FILE          = "retrained_labels_rps_many_samples.txt";
-//    public static final String RPS_LABELS_FILE          = "retrained_labels_rps_laplacian.txt";
+    public static final String RPS_LABELS_FILE          = "retrained_labels_rps_random_color.txt";
     public static final String LOSER_SPIDERMAN_LABELS   = "retrained_labels_loser_spiderman_final.txt";
     public static final String OK_THREE_LABELS          = "retrained_labels_ok_three_final.txt";
-    public static final String RPS_MODEL_FILE           = "file:///android_asset/retrained_graph_rps_many_samples.pb";
-//    public static final String RPS_MODEL_FILE           = "file:///android_asset/retrained_graph_rps_laplacian.pb";
+    public static final String RPS_MODEL_FILE           = "file:///android_asset/retrained_graph_rps_random_color.pb";
     public static final String LOSER_SPIDERMAN_MODEL    = "file:///android_asset/retrained_graph_loser_spiderman_final.pb";
     public static final String OK_THREE_MODEL           = "file:///android_asset/retrained_graph_ok_three_final.pb";
     public static final String INPUT_NAME               = "input:0";
@@ -47,7 +40,7 @@ public class Helper {
     public static final long[] NETWORK_STRUCTURE        = {1, IMAGE_SIZE, IMAGE_SIZE, 3};
     public static final int NUM_CLASSES                 = 1008;
 
-    public static final int MAX_BEST_RESULTS            = 3;
+    private static final int MAX_BEST_RESULTS           = 3;
     private static final float RES_CONFIDENCE_THRESHOLD = 0.1f;
 
     public static String[] readLabels(Context context, String labelFile) {
@@ -107,28 +100,6 @@ public class Helper {
             floatValues[i * 3 + 2] = ((val & 0xFF) - IMAGE_MEAN) / IMAGE_STD;
         }
         return floatValues;
-    }
-
-    /**
-     * Saves a Bitmap object to disk for analysis.
-     *
-     * @param bitmap The bitmap to save.
-     */
-    public static void saveBitmap(final Bitmap bitmap) {
-        final File file = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "tensorflow_preview.png");
-        Log.d("ImageHelper", String.format("Saving %dx%d bitmap to %s.",
-                bitmap.getWidth(), bitmap.getHeight(), file.getAbsolutePath()));
-
-        if (file.exists()) {
-            file.delete();
-        }
-        try (FileOutputStream fs = new FileOutputStream(file);
-             BufferedOutputStream out = new BufferedOutputStream(fs)) {
-            bitmap.compress(Bitmap.CompressFormat.PNG, 99, out);
-        } catch (final Exception e) {
-            Log.w("ImageHelper", "Could not save image for debugging. " + e.getMessage());
-        }
     }
 
     public static void cropAndRescaleBitmap(final Bitmap src, final Bitmap dst, int sensorOrientation) {

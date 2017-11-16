@@ -6,8 +6,6 @@ package com.example.sewl.androidthingssample;
 
 public class HandController {
 
-    public static final int PWM_FREQUENCY = 60;
-
     public FingerController indexFinger;
 
     public FingerController ringFinger;
@@ -26,7 +24,7 @@ public class HandController {
 
     public void init(SettingsRepository settingsRepository) {
         pwmDriver = new MultiChannelServoDriver();
-        pwmDriver.init(PWM_FREQUENCY);
+        pwmDriver.init();
 
         thumb = new ThumbController(8, pwmDriver, true);
         indexFinger = new FingerController(4, pwmDriver, false, 0);
@@ -232,16 +230,6 @@ public class HandController {
         forearm.loose();
     }
 
-    public void two() {
-        indexFinger.loose();
-        middleFinger.loose();
-        ringFinger.flex();
-        pinky.flex();
-        thumb.flex();
-        wrist.parallelToGround();
-        forearm.loose();
-    }
-
     public void moveToSimonSaysReady() {
         loose();
     }
@@ -256,27 +244,7 @@ public class HandController {
         forearm.flex();
     }
 
-    public void thumbsDown() {
-        indexFinger.flex();
-        middleFinger.flex();
-        ringFinger.flex();
-        pinky.flex();
-        thumb.loose();
-        wrist.parallelToGround();
-        forearm.flex();
-    }
-
     public void shutdown() {
         pwmDriver.shutDown();
-    }
-
-    public void point() {
-        indexFinger.loose();
-        middleFinger.flex();
-        ringFinger.flex();
-        pinky.flex();
-        thumb.flex();
-        wrist.perpendicularToGround();
-        forearm.flex();
     }
 }

@@ -8,7 +8,6 @@ import android.os.Handler;
 
 public class WristController {
 
-    private static int THUMBS_DOWN_FLEX         = 0;
     private static int FLEXED_ANGLE             = 0;
     private static int LOOSE_ANGLE              = 112;
     public static final int SERVO_OFF_VALUE     = 0;

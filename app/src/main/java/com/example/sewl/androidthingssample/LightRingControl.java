@@ -12,11 +12,12 @@ import java.io.IOException;
 
 public class LightRingControl {
 
+    public static final String DEFAULT_SPI_BUS        = "SPI3.0";
+    public static final long FAST_PULSE_DELAY_MILLIS  = 4;
+
     private static final int NUMBER_OF_LEDS           = 24;
     private static final int PULSE_DELAY              = 10;
     private static final int NUMBER_OF_LED_STEPS      = 720;
-    public static final String DEFAULT_SPI_BUS        = "SPI3.0";
-    public static final long FAST_PULSE_DELAY_MILLIS  = 4;
     private static final float SWIRL_SECONDS          = 0.5f;
     private static final long FLASH_DELAY             = 1;
 
@@ -65,7 +66,6 @@ public class LightRingControl {
             float t = i/(NUMBER_OF_LED_STEPS * 0.5f);
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 float offset = (float)j / (float) NUMBER_OF_LEDS;
-                // 2*offset for slower ring
                 double lightness = 0.3f * Math.sin(t * Math.PI - 2*offset);
                 int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, (float) lightness});
                 colors[j] = color;
