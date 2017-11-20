@@ -22,17 +22,19 @@ import java.util.PriorityQueue;
  * Created by mderrick on 10/2/17.
  */
 
-public class Helper {
+public class TensorflowImageOperations {
 
     public static final int IMAGE_SIZE                  = 128;
     public static final int IMAGE_MEAN                  = 0;
     public static final float IMAGE_STD                 = 255;
     public static final String RPS_LABELS_FILE          = "retrained_labels_rps_random_color.txt";
-    public static final String LOSER_SPIDERMAN_LABELS   = "retrained_labels_loser_spiderman_final.txt";
-    public static final String OK_THREE_LABELS          = "retrained_labels_ok_three_final.txt";
+    public static final String SPIDERMAN_OK_LABELS      = "retrained_labels_spiderman_ok_random_color.txt";
+    public static final String ONE_ROCK_LABELS          = "retrained_labels_one_rock_random_color.txt";
+    public static final String LOSER_THREE_LABELS       = "retrained_labels_loser_three_random_color.txt";
     public static final String RPS_MODEL_FILE           = "file:///android_asset/retrained_graph_rps_random_color.pb";
-    public static final String LOSER_SPIDERMAN_MODEL    = "file:///android_asset/retrained_graph_loser_spiderman_final.pb";
-    public static final String OK_THREE_MODEL           = "file:///android_asset/retrained_graph_ok_three_final.pb";
+    public static final String SPIDERMAN_OK_MODEL       = "file:///android_asset/retrained_graph_spiderman_ok_random_color.pb";
+    public static final String ONE_ROCK_MODEL           = "file:///android_asset/retrained_graph_one_rock_random_color.pb";
+    public static final String LOSER_THREE_MODEL        = "file:///android_asset/retrained_graph_loser_three_random_color.pb";
     public static final String INPUT_NAME               = "input:0";
     public static final String OUTPUT_OPERATION         = "final_result";
     public static final String OUTPUT_NAME              = OUTPUT_OPERATION + ":0";
@@ -75,7 +77,7 @@ public class Helper {
             }
         }
 
-        ArrayList<Classifier.Recognition> recognitions = new ArrayList<Classifier.Recognition>();
+        ArrayList<Classifier.Recognition> recognitions = new ArrayList();
         int recognitionsSize = Math.min(pq.size(), MAX_BEST_RESULTS);
         for (int i = 0; i < recognitionsSize; ++i) {
             recognitions.add(pq.poll());

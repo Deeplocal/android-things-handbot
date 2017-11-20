@@ -28,22 +28,19 @@ public class CameraHandler {
 
     private static final String TAG = CameraHandler.class.getSimpleName();
 
-    public static final int IMAGE_WIDTH = 640;
-    public static final int IMAGE_HEIGHT = 480;
+    public static final int IMAGE_WIDTH     = 640;
+    public static final int IMAGE_HEIGHT    = 480;
+    public static final int MAX_IMAGES      = 2;
 
-    private static final int MAX_IMAGES = 2;
-    private CameraDevice mCameraDevice;
     private CameraCaptureSession mCaptureSession;
-    /**
-     * An {@link ImageReader} that handles still image capture.
-     */
-    private ImageReader mImageReader;
 
     private CameraReadyListener cameraReadyListener;
 
-    // Lazy-loaded singleton, so only one instance of the camera is created.
-    private CameraHandler() {
-    }
+    private CameraDevice mCameraDevice;
+
+    private ImageReader mImageReader;
+
+    private CameraHandler() {}
 
     private static class InstanceHolder {
         private static CameraHandler mCamera = new CameraHandler();
@@ -75,7 +72,7 @@ public class CameraHandler {
                     CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                 configs.getInputSizes(JPEG);
         } catch (CameraAccessException e) {
-            Log.i("CAMERA", "failed to get characteristics");
+            Log.e("CAMERA", "failed to get characteristics");
         }
         Log.d(TAG, "Using camera id " + id);
         // Initialize the image processor

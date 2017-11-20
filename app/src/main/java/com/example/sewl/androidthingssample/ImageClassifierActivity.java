@@ -24,39 +24,41 @@ public class ImageClassifierActivity extends Activity
 
     public static final String CONFIG_BUTTON_GPPIO = "GPIO_33";
 
-    private ImagePreprocessor imagePreprocessor;
+    private Map<String, TensorFlowImageClassifier> classifiers = new HashMap();
 
-    private CameraHandler mCameraHandler;
+    private ImageClassificationThread imageClassificationThread;
 
     private TensorFlowImageClassifier rpsTensorFlowClassifier;
 
-    private TensorFlowImageClassifier loserSpidermanClassifier;
+    private TensorFlowImageClassifier spidermanOkClassifier;
 
-    private TensorFlowImageClassifier okThreeClassifier;
+    private TensorFlowImageClassifier loserThreeClassifier;
 
-    private HandlerThread mBackgroundThread;
+    private TensorFlowImageClassifier oneRockClassifier;
 
-    private Handler mBackgroundHandler;
+    private SettingsRepository settingsRepository;
 
-    private HandController handController;
+    private ButtonInputDriver mButtonInputDriver;
+
+    private ImagePreprocessor imagePreprocessor;
 
     private StandbyController standbyController;
 
     private LightRingControl lightRingControl;
 
-    private SoundController soundController;
-
-    private ImageClassificationThread imageClassificationThread;
-
-    private ButtonInputDriver mButtonInputDriver;
-
-    private Map<String, TensorFlowImageClassifier> classifiers = new HashMap();
-
-    private int keyPresses = 0;
-
     private STATES currentState = STATES.IDLE;
 
-    private SettingsRepository settingsRepository;
+    private HandlerThread mBackgroundThread;
+
+    private SoundController soundController;
+
+    private HandController handController;
+
+    private CameraHandler mCameraHandler;
+
+    private Handler mBackgroundHandler;
+
+    private int keyPresses = 0;
 
     private enum STATES {
         IDLE,
@@ -81,21 +83,26 @@ public class ImageClassifierActivity extends Activity
         imagePreprocessor = new ImagePreprocessor();
         handController = new HandController();
         handController.init(settingsRepository);
-        rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.RPS_MODEL_FILE, Helper.RPS_LABELS_FILE);
-        loserSpidermanClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.LOSER_SPIDERMAN_MODEL, Helper.LOSER_SPIDERMAN_LABELS);
-        okThreeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, Helper.OK_THREE_MODEL, Helper.OK_THREE_LABELS);
+
+        // Create Tensorflow classifiers
+        rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.RPS_MODEL_FILE, TensorflowImageOperations.RPS_LABELS_FILE);
+        spidermanOkClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.SPIDERMAN_OK_MODEL, TensorflowImageOperations.SPIDERMAN_OK_LABELS);
+        loserThreeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.LOSER_THREE_MODEL, TensorflowImageOperations.LOSER_THREE_LABELS);
+        oneRockClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.ONE_ROCK_MODEL, TensorflowImageOperations.ONE_ROCK_LABELS);
+
         standbyController.init(handController, lightRingControl, soundController);
 
         // Use a different specific classifier for actions that don't play well together
-        classifiers.put(Signs.SPIDERMAN, loserSpidermanClassifier);
-        classifiers.put(Signs.THREE, okThreeClassifier);
-        classifiers.put(Signs.OK, okThreeClassifier);
+        classifiers.put(Signs.SPIDERMAN, spidermanOkClassifier);
+        classifiers.put(Signs.THREE, loserThreeClassifier);
+        classifiers.put(Signs.OK, spidermanOkClassifier);
         classifiers.put(Signs.ROCK, rpsTensorFlowClassifier);
         classifiers.put(Signs.PAPER, rpsTensorFlowClassifier);
         classifiers.put(Signs.SCISSORS, rpsTensorFlowClassifier);
-        classifiers.put(Signs.LOSER, loserSpidermanClassifier);
-        classifiers.put("rps", rpsTensorFlowClassifier);
-        classifiers.put("mirror", rpsTensorFlowClassifier);
+        classifiers.put(Signs.LOSER, loserThreeClassifier);
+        classifiers.put(Signs.ONE, oneRockClassifier);
+        classifiers.put("rps", oneRockClassifier);
+        classifiers.put("mirror", oneRockClassifier);
         classifiers.put("simon_says", rpsTensorFlowClassifier);
 
         mBackgroundThread = new HandlerThread("BackgroundThread");
@@ -203,8 +210,9 @@ public class ImageClassifierActivity extends Activity
         } catch (Throwable t) { }
         try {
             if (rpsTensorFlowClassifier != null) rpsTensorFlowClassifier.destroyClassifier();
-            if (loserSpidermanClassifier != null) loserSpidermanClassifier.destroyClassifier();
-            if (okThreeClassifier != null) okThreeClassifier.destroyClassifier();
+            if (spidermanOkClassifier != null) spidermanOkClassifier.destroyClassifier();
+            if (loserThreeClassifier != null) loserThreeClassifier.destroyClassifier();
+            if (oneRockClassifier != null) oneRockClassifier.destroyClassifier();
         } catch (Throwable t) { }
     }
 

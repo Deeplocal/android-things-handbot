@@ -26,14 +26,14 @@ public class HandController {
         pwmDriver = new MultiChannelServoDriver();
         pwmDriver.init();
 
-        thumb = new ThumbController(8, pwmDriver, true);
-        indexFinger = new FingerController(4, pwmDriver, false, 0);
-        middleFinger = new FingerController(2, pwmDriver, false, 0);
-        ringFinger = new FingerController(0, pwmDriver, false, 0);
-        pinky = new FingerController(5, pwmDriver, false, 0);
+        thumb = new ThumbController(BoardDefaults.HandPinout.THUMB, pwmDriver, true);
+        indexFinger = new FingerController(BoardDefaults.HandPinout.INDEX, pwmDriver, false, 0);
+        middleFinger = new FingerController(BoardDefaults.HandPinout.MIDDLE, pwmDriver, false, 0);
+        ringFinger = new FingerController(BoardDefaults.HandPinout.RING, pwmDriver, false, 0);
+        pinky = new FingerController(BoardDefaults.HandPinout.PINKY, pwmDriver, false, 0);
 
-        wrist = new WristController(9, pwmDriver);
-        forearm = new ForearmController(12, 13, pwmDriver, settingsRepository);
+        wrist = new WristController(BoardDefaults.HandPinout.WRIST, pwmDriver);
+        forearm = new ForearmController(BoardDefaults.HandPinout.FOREARM_ON_USER_RIGHT, BoardDefaults.HandPinout.FOREARM_ON_USER_LEFT, pwmDriver, settingsRepository);
     }
 
     public void handleRPSAction(String action) {

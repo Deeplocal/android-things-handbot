@@ -35,13 +35,13 @@ public class TensorFlowImageClassifier implements Classifier {
         this.inferenceInterface = new TensorFlowInferenceInterface(
                 context.getAssets(),
                 modelFile);
-        this.labels = Helper.readLabels(context, labelFile);
+        this.labels = TensorflowImageOperations.readLabels(context, labelFile);
         this.modelFile = modelFile;
 
         // Pre-allocate buffers.
-        intValues = new int[Helper.IMAGE_SIZE * Helper.IMAGE_SIZE];
-        floatValues = new float[Helper.IMAGE_SIZE * Helper.IMAGE_SIZE * 3];
-        outputs = new float[Helper.NUM_CLASSES];
+        intValues = new int[TensorflowImageOperations.IMAGE_SIZE * TensorflowImageOperations.IMAGE_SIZE];
+        floatValues = new float[TensorflowImageOperations.IMAGE_SIZE * TensorflowImageOperations.IMAGE_SIZE * 3];
+        outputs = new float[TensorflowImageOperations.NUM_CLASSES];
     }
 
     /**
@@ -59,20 +59,20 @@ public class TensorFlowImageClassifier implements Classifier {
      *              and power consuming.
      */
     public List<Classifier.Recognition> doRecognize(Bitmap image) {
-        float[] pixels = Helper.getPixels(Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight()), intValues, floatValues);
+        float[] pixels = TensorflowImageOperations.getPixels(Bitmap.createBitmap(image, 0, 0, image.getWidth(), image.getHeight()), intValues, floatValues);
 
         // Feed the pixels of the image into the TensorFlow Neural Network
-        inferenceInterface.feed(Helper.INPUT_NAME, pixels,
-                Helper.NETWORK_STRUCTURE);
+        inferenceInterface.feed(TensorflowImageOperations.INPUT_NAME, pixels,
+                TensorflowImageOperations.NETWORK_STRUCTURE);
 
         // Run the TensorFlow Neural Network with the provided input
-        inferenceInterface.run(Helper.OUTPUT_NAMES);
+        inferenceInterface.run(TensorflowImageOperations.OUTPUT_NAMES);
 
         // Extract the output from the neural network back into an array of confidence per category
-        inferenceInterface.fetch(Helper.OUTPUT_NAME, outputs);
+        inferenceInterface.fetch(TensorflowImageOperations.OUTPUT_NAME, outputs);
 
         // Get the results with the highest confidence and map them to their labels
-        return Helper.getBestResults(outputs, labels);
+        return TensorflowImageOperations.getBestResults(outputs, labels);
     }
 
     public String getModelFile() {

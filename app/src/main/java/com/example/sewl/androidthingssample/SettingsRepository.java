@@ -9,8 +9,7 @@ import android.content.SharedPreferences;
 
 public class SettingsRepository {
 
-    private final static String FOREARM_SERVO_OFFSET_KEY     = "FOREARM_SERVO_OFFSET_KEY";
-
+    private static final String FOREARM_SERVO_OFFSET_KEY     = "FOREARM_SERVO_OFFSET_KEY";
     private static final String SERVO_OFFSETS_REPOSITORY_KEY = "SERVO_OFFSETS_REPOSITORY_KEY";
 
     private Context context;

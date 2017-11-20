@@ -14,12 +14,11 @@ import java.util.Map;
 
 public class RockPaperScissors implements Game {
 
-    public static final int WIN_SAMPLES_NEEDED         = 2;
-    private static final long THROW_WAIT_TIME          = 600;
     private static final long WAIT_FOR_NEW_ROUND_DELAY = 800;
     private static final long START_ROUND_TIME         = 1500;
     public static final int MONITOR_TIME               = 2000;
     private static final int ORANGE                    = 0xFFA500;
+    private static final long ANIMATION_WAIT_TIME      = 3000;
 
     private GameStateListener gameStateListener;
 
@@ -31,8 +30,6 @@ public class RockPaperScissors implements Game {
 
     private Map<String, Integer> monitoredActions = new HashMap<>();
 
-    private int totalRecordedActions;
-
     private int roundLosses;
 
     private int roundWins;
@@ -43,10 +40,6 @@ public class RockPaperScissors implements Game {
 
     private String thrownAction;
 
-    private Handler handler;
-
-    private static final long ANIMATION_WAIT_TIME = 3000;
-
     private Thread rpsThread;
 
     public RockPaperScissors(HandController handController, GameStateListener gameStateListener,
@@ -55,7 +48,6 @@ public class RockPaperScissors implements Game {
         this.gameStateListener = gameStateListener;
         this.lightRingControl = lightRingControl;
         this.soundController = soundController;
-        this.handler = new Handler();
     }
 
     private enum STATES {
@@ -137,7 +129,6 @@ public class RockPaperScissors implements Game {
             case MONITOR:
                 logAction(seenAction);
                 currentState = nextStateForWaitState(STATES.DETERMINE_ROUND_WINNER);
-                totalRecordedActions++;
                 break;
             case DETERMINE_ROUND_WINNER:
                 String userThrow = getUserThrow();
@@ -316,7 +307,6 @@ public class RockPaperScissors implements Game {
     }
 
     private void resetRound() {
-        totalRecordedActions = 0;
         monitoredActions = new HashMap();
     }
 

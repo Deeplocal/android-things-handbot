@@ -20,7 +20,7 @@ public class ImagePreprocessor {
     private Bitmap croppedBitmap;
 
     public ImagePreprocessor() {
-        this.croppedBitmap = Bitmap.createBitmap(Helper.IMAGE_SIZE, Helper.IMAGE_SIZE,
+        this.croppedBitmap = Bitmap.createBitmap(TensorflowImageOperations.IMAGE_SIZE, TensorflowImageOperations.IMAGE_SIZE,
                 Bitmap.Config.ARGB_8888);
         this.rgbFrameBitmap = Bitmap.createBitmap(CameraHandler.IMAGE_WIDTH,
                 CameraHandler.IMAGE_HEIGHT, Bitmap.Config.ARGB_8888);
@@ -37,7 +37,7 @@ public class ImagePreprocessor {
         if (croppedBitmap != null && rgbFrameBitmap != null) {
             ByteBuffer bb = image.getPlanes()[0].getBuffer();
             rgbFrameBitmap = BitmapFactory.decodeStream(new ByteBufferBackedInputStream(bb));
-            Helper.cropAndRescaleBitmap(rgbFrameBitmap, croppedBitmap, 0);
+            TensorflowImageOperations.cropAndRescaleBitmap(rgbFrameBitmap, croppedBitmap, 0);
         }
 
         image.close();

@@ -15,26 +15,18 @@ import java.util.Map;
 
 public class SimonSays implements Game {
 
-    private static final int MAX_ROUNDS                    = 5;
     private static final long MOVE_TO_READY_WAIT_TIME      = 1200;
     private static final long SHOW_SIGN_WAIT_TIME          = 900;
     private static final long END_GAME_WAIT_TIME           = 2000;
     private static final long MONITOR_FOR_SIGN_WAIT_TIME   = 2500;
     private static final long PAUSE_BETWEEN_SIGN_WAIT_TIME = 600;
-    private static final float MIN_SIGN_CONFIDENCE         = 0.60f;
     private static final long CHOOSE_SIGNS_WAIT_DELAY      = 3500;
+    private static final float MIN_SIGN_CONFIDENCE         = 0.60f;
+    private static final int MAX_ROUNDS                    = 5;
 
-    private final LightRingControl lightRingControl;
+    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS, Signs.SPIDERMAN, Signs.LOSER, Signs.THREE, Signs.OK, Signs.ONE };
 
-    private GameStateListener gameStateListener;
-
-    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS, Signs.SPIDERMAN, Signs.LOSER, Signs.THREE };
-
-    private static final int DEFAULT_SIGNS = 3;
-
-    private HandController handController;
-
-    private STATES currentState = STATES.IDLE;
+    private Map<String, Integer> monitoredActions = new HashMap();
 
     private long timeToTransition = System.currentTimeMillis();
 
@@ -42,15 +34,23 @@ public class SimonSays implements Game {
 
     private List<String> signsToMatch = new LinkedList<>();
 
-    private int roundNumber = 0;
+    private final LightRingControl lightRingControl;
 
-    private int correctSigns = 0;
+    private GameStateListener gameStateListener;
+
+    private static final int DEFAULT_SIGNS = 3;
+
+    private STATES currentState = STATES.IDLE;
 
     private SoundController soundController;
 
-    private Map<String, Integer> monitoredActions = new HashMap();
+    private HandController handController;
 
     private String actionToLookup;
+
+    private int correctSigns = 0;
+
+    private int roundNumber = 0;
 
     private int showedSigns = 0;
 
@@ -88,7 +88,6 @@ public class SimonSays implements Game {
 
     @Override
     public void run(String action, List<Classifier.Recognition> results) {
-        Log.i("STATE", "simonSays: " + currentState);
         switch (currentState) {
             case IDLE:
                 break;

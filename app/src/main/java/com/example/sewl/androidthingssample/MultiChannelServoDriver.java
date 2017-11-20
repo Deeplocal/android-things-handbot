@@ -28,10 +28,9 @@ public class MultiChannelServoDriver {
     private static final byte LED0_OFF_H        = 0x09;
     private static final int SERVO_MAX_ANGLE    = 180;
 
-    //  HS-5085 Servos
-    // (900/(20ms/4096))
+    // HS-5085 Servos
+    // This will change to accommodate different servo pwm pulse widths
     private static final int SERVO_MIN          = 184;
-    // (2100/(20ms/4096))
     private static final int SERVO_MAX          = 430;
 
     private I2cDevice i2cDevice;
@@ -40,7 +39,7 @@ public class MultiChannelServoDriver {
         PeripheralManagerService manager = new PeripheralManagerService();
         final List<String> deviceList = manager.getI2cBusList();
         if (deviceList.isEmpty()) {
-            Log.i(TAG, "No I2C bus available on this device.");
+            Log.e(TAG, "No I2C bus available on this device.");
         } else {
             openConnection(deviceList.get(0));
             writeReg(PCA9685_MODE1, RESET);

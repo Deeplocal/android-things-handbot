@@ -14,8 +14,9 @@ import java.util.Map;
 
 public class StandbyController implements GameStateListener {
 
-    private static final Integer SAMPLES_PER_ACTION = 2;
-    private static final Integer SAMPLES_TO_START_GAME = 8;
+    private static final Integer SAMPLES_PER_ACTION     = 2;
+    private static final Integer SAMPLES_TO_START_GAME  = 8;
+    public static final float MINIMUM_MIRROR_CONFIDENCE = 0.92f;
 
     private HandController handController;
 
@@ -114,7 +115,7 @@ public class StandbyController implements GameStateListener {
     }
 
     private boolean shouldMirror(List<Classifier.Recognition> results) {
-        return results.get(0).getConfidence() > 0.92f || getSmoothedAction() != null;
+        return results.get(0).getConfidence() > MINIMUM_MIRROR_CONFIDENCE || getSmoothedAction() != null;
     }
 
     private void runMirror(String action) {

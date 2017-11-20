@@ -8,9 +8,9 @@ import android.os.Handler;
 
 public class WristController {
 
-    private static int FLEXED_ANGLE             = 0;
-    private static int LOOSE_ANGLE              = 112;
-    public static final int SERVO_OFF_VALUE     = 0;
+    public static final int FLEXED_ANGLE             = 0;
+    public static final int LOOSE_ANGLE              = 112;
+    public static final int SERVO_OFF_VALUE          = 0;
 
     private int channel;
 
