@@ -26,17 +26,11 @@ public class FingerController {
 
     private Handler settleServoHandler = new Handler();
 
-    private boolean isEnabled = true;
-
     public FingerController(int channel, MultiChannelServoDriver servoDriver, boolean reverseAngle, int offset) {
         this.channel = channel;
         this.servoDriver = servoDriver;
         this.reverseAngle = reverseAngle;
         this.offset = offset;
-    }
-
-    public void setEnabled(boolean isEnabled) {
-        this.isEnabled = isEnabled;
     }
 
     public void flex() {
@@ -48,14 +42,6 @@ public class FingerController {
     }
 
     public void setAngle(int angle) {
-        setAngle(angle, true);
-    }
-
-    public void setAngle(int angle, boolean settle) {
-        if (!isEnabled) {
-            return;
-        }
-
         int remapped = reverseAngle ? 180 - angle : angle;
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {

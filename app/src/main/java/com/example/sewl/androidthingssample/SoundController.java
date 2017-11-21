@@ -9,8 +9,6 @@ import android.media.MediaPlayer;
 
 public class SoundController {
 
-    public static final float DEFAULT_VOLUME = 0.5f;
-
     public enum SOUNDS {
         START_GAME,
         TIE,
@@ -73,7 +71,7 @@ public class SoundController {
 
     private void play(int sound) {
         MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
-        mediaPlayer.setVolume(DEFAULT_VOLUME, DEFAULT_VOLUME);
+        mediaPlayer.setVolume(BoardDefaults.DEFAULT_VOLUME, BoardDefaults.DEFAULT_VOLUME);
         mediaPlayer.setLooping(false);
         mediaPlayer.start();
     }

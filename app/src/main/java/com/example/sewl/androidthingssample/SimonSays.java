@@ -15,6 +15,8 @@ import java.util.Map;
 
 public class SimonSays implements Game {
 
+    private static final String TAG = SimonSays.class.getSimpleName();
+
     private static final long MOVE_TO_READY_WAIT_TIME      = 1200;
     private static final long SHOW_SIGN_WAIT_TIME          = 900;
     private static final long END_GAME_WAIT_TIME           = 2000;
@@ -22,6 +24,7 @@ public class SimonSays implements Game {
     private static final long PAUSE_BETWEEN_SIGN_WAIT_TIME = 600;
     private static final long CHOOSE_SIGNS_WAIT_DELAY      = 3500;
     private static final float MIN_SIGN_CONFIDENCE         = 0.60f;
+
     private static final int MAX_ROUNDS                    = 5;
 
     private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS, Signs.SPIDERMAN, Signs.LOSER, Signs.THREE, Signs.OK, Signs.ONE };
@@ -118,7 +121,7 @@ public class SimonSays implements Game {
             case SHOW_SIGN:
                 setTransitionTime(SHOW_SIGN_WAIT_TIME);
                 String sign = signsToShow.remove(0);
-                Log.i("SIGN", "sign: " + sign);
+                Log.i(TAG, "sign: " + sign);
                 showedSigns++;
                 lightRingControl.showMatchingLights(showedSigns, 0);
                 soundController.playSignSound(sign);

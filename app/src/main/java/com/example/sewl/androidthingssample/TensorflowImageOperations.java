@@ -31,10 +31,12 @@ public class TensorflowImageOperations {
     public static final String SPIDERMAN_OK_LABELS      = "retrained_labels_spiderman_ok_random_color.txt";
     public static final String ONE_ROCK_LABELS          = "retrained_labels_one_rock_random_color.txt";
     public static final String LOSER_THREE_LABELS       = "retrained_labels_loser_three_random_color.txt";
+    public static final String MIRROR_LABELS            = "retrained_labels_mirror_random_color.txt";
     public static final String RPS_MODEL_FILE           = "file:///android_asset/retrained_graph_rps_random_color.pb";
     public static final String SPIDERMAN_OK_MODEL       = "file:///android_asset/retrained_graph_spiderman_ok_random_color.pb";
     public static final String ONE_ROCK_MODEL           = "file:///android_asset/retrained_graph_one_rock_random_color.pb";
     public static final String LOSER_THREE_MODEL        = "file:///android_asset/retrained_graph_loser_three_random_color.pb";
+    public static final String MIRROR_MODEL             = "file:///android_asset/retrained_graph_mirror_random_color.pb";
     public static final String INPUT_NAME               = "input:0";
     public static final String OUTPUT_OPERATION         = "final_result";
     public static final String OUTPUT_NAME              = OUTPUT_OPERATION + ":0";

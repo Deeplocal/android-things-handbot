@@ -71,12 +71,6 @@ public class StandbyController implements GameStateListener {
         }
     }
 
-    private void runPulseState(String action, List<Classifier.Recognition> results) {
-        if (!Signs.NEGATIVE.equals(action) && results.get(0).getConfidence() > 0.7f) {
-            currentState = STATES.MIRROR;
-        }
-    }
-
     @Override
     public void gameFinished() {
         if (currentGame != null) {

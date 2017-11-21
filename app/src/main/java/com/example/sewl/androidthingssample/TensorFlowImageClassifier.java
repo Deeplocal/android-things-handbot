@@ -13,8 +13,6 @@ import java.util.List;
 
 public class TensorFlowImageClassifier implements Classifier {
 
-    private static final String TAG = "TFImageClassifier";
-
     private final String modelFile;
 
     private String[] labels;
@@ -73,9 +71,5 @@ public class TensorFlowImageClassifier implements Classifier {
 
         // Get the results with the highest confidence and map them to their labels
         return TensorflowImageOperations.getBestResults(outputs, labels);
-    }
-
-    public String getModelFile() {
-        return modelFile;
     }
 }

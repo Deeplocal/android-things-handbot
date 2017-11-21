@@ -20,8 +20,6 @@ public class WristController {
 
     private Handler settleServoHandler = new Handler();
 
-    private boolean isEnabled = true;
-
     public WristController(int channel, MultiChannelServoDriver servoDriver) {
         this.channel = channel;
         this.servoDriver = servoDriver;
@@ -40,10 +38,6 @@ public class WristController {
     }
 
     public void setAngle(int angle) {
-        if (!isEnabled) {
-            return;
-        }
-
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {
             int diff = Math.abs(angle - currentAngle);
@@ -53,14 +47,6 @@ public class WristController {
             this.currentAngle = angle;
             settleServo(diff);
         }
-    }
-
-    public boolean isEnabled() {
-        return isEnabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        isEnabled = enabled;
     }
 
     private void settleServo(int angleMoved) {

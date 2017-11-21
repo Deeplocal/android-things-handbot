@@ -15,6 +15,8 @@ import java.util.Map;
 
 public class ImageClassificationThread extends Thread {
 
+    private static final String TAG = ImageClassificationThread.class.getSimpleName();
+
     private final Map<String, TensorFlowImageClassifier> classifiers;
 
     private final StandbyController standbyController;
@@ -45,12 +47,11 @@ public class ImageClassificationThread extends Thread {
             }
         };
         Looper.loop();
-
         Looper.myLooper().quit();
     }
 
     public void classifyImage(Bitmap bitmap) {
-        Log.i("TOOK", "overall: " + (System.currentTimeMillis() - currentTime));
+        Log.i(TAG, "Took: " + (System.currentTimeMillis() - currentTime));
         currentTime = System.currentTimeMillis();
 
         TensorFlowImageClassifier classifier = classifiers.get(standbyController.getClassifierKey());
@@ -58,7 +59,7 @@ public class ImageClassificationThread extends Thread {
             final List<Classifier.Recognition> results = classifier.doRecognize(bitmap);
             if (results.size() > 0) {
                 standbyController.run(results.get(0).getTitle(), results);
-                Log.i("Tensorflow", "results: " + results);
+                Log.i(TAG, "Results: " + results);
             }
             classifyingImage = false;
         }

@@ -21,16 +21,10 @@ public class ThumbController {
 
     private boolean reverseAngle;
 
-    private boolean isEnabled = true;
-
     public ThumbController(int channel, MultiChannelServoDriver servoDriver, boolean reverseAngle) {
         this.channel = channel;
         this.servoDriver = servoDriver;
         this.reverseAngle = reverseAngle;
-    }
-
-    public void setEnabled(boolean isEnabled) {
-        this.isEnabled = isEnabled;
     }
 
     public void flex() {
@@ -42,14 +36,6 @@ public class ThumbController {
     }
 
     public void setAngle(int angle) {
-        setAngle(angle, true);
-    }
-
-    public void setAngle(int angle, boolean settle) {
-        if (!isEnabled) {
-            return;
-        }
-
         int remapped = reverseAngle ? 180 - angle : angle;
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {

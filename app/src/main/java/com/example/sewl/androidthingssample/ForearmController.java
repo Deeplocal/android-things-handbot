@@ -23,8 +23,6 @@ public class ForearmController {
 
     private Handler settleServoHandler = new Handler();
 
-    private boolean isEnabled = true;
-
     private SettingsRepository settingsRepository;
 
     public ForearmController(int channel1, int channel2, MultiChannelServoDriver servoDriver, SettingsRepository settingsRepository) {
@@ -47,10 +45,6 @@ public class ForearmController {
     }
 
     public void setAngle(int angle) {
-        if (!isEnabled) {
-            return;
-        }
-
         settleServoHandler.removeCallbacksAndMessages(null);
         if (servoDriver != null) {
             if (currentAngle != angle) {
@@ -64,14 +58,6 @@ public class ForearmController {
                 settleServo();
             }
         }
-    }
-
-    public boolean isEnabled() {
-        return isEnabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        isEnabled = enabled;
     }
 
     private void settleServo() {

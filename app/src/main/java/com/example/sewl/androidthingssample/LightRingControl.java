@@ -1,6 +1,7 @@
 package com.example.sewl.androidthingssample;
 
 import android.graphics.Color;
+import android.util.Log;
 
 import com.google.android.things.contrib.driver.apa102.Apa102;
 
@@ -12,13 +13,14 @@ import java.io.IOException;
 
 public class LightRingControl {
 
-    public static final String DEFAULT_SPI_BUS        = "SPI3.0";
-    public static final long FAST_PULSE_DELAY_MILLIS  = 4;
+    private static final String TAG = LightRingControl.class.getSimpleName();
 
+    public static final long FAST_PULSE_DELAY_MILLIS  = 4;
     private static final int NUMBER_OF_LEDS           = 24;
     private static final int PULSE_DELAY              = 10;
     private static final int NUMBER_OF_LED_STEPS      = 720;
     private static final float SWIRL_SECONDS          = 0.5f;
+
     private static final long FLASH_DELAY             = 1;
 
     private Thread ledThread;
@@ -32,8 +34,8 @@ public class LightRingControl {
 
     public void init() {
         try {
-            mLedstrip = new Apa102(DEFAULT_SPI_BUS, Apa102.Mode.RBG, Apa102.Direction.NORMAL);
-            mLedstrip.setBrightness(20);
+            mLedstrip = new Apa102(BoardDefaults.DEFAULT_SPI_BUS, Apa102.Mode.RBG, Apa102.Direction.NORMAL);
+            mLedstrip.setBrightness(BoardDefaults.LED_BRIGHTNESS);
         } catch (IOException e) { }
     }
 
@@ -76,11 +78,7 @@ public class LightRingControl {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            try {
-                Thread.sleep(pulseDelay);
-            } catch (InterruptedException e) {
-            }
+            sleep(pulseDelay);
         }
     }
 
@@ -120,10 +118,15 @@ public class LightRingControl {
             colors[shiftLedIndex(i*ledsPerMark + 1)] = red;
             colors[shiftLedIndex(i*ledsPerMark + 2)] = Color.BLACK;
         }
+
+        writeToLEDStrip(colors);
+    }
+
+    private void writeToLEDStrip(int[] colors) {
         try {
             mLedstrip.write(colors);
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Failed to write to LED strip", e);
         }
     }
 
@@ -194,22 +197,15 @@ public class LightRingControl {
                             colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseGreen;
                             colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
                         }
-                        int pulseRed = Color.HSVToColor(new float[]{ redHsv[0], 1.0f, t*0.6f});
+                        int pulseRed = Color.HSVToColor(new float[] { redHsv[0], 1.0f, t*0.6f});
                         for (int j = right; j < right + wrong; j++) {
                             colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
                             colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseRed;
                             colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
                         }
-                        try {
-                            mLedstrip.write(colors);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
 
-                        try {
-                            Thread.sleep(FAST_PULSE_DELAY_MILLIS);
-                        } catch (InterruptedException e) {
-                        }
+                        writeToLEDStrip(colors);
+                        sleep(FAST_PULSE_DELAY_MILLIS);
                     }
 
                     for (int i = 170; i >= 0; i-=2) {
@@ -228,13 +224,9 @@ public class LightRingControl {
                         }
                         try {
                             mLedstrip.write(colors);
-                        } catch (IOException e) {
-                        }
+                        } catch (IOException e) {}
 
-                        try {
-                            Thread.sleep(FAST_PULSE_DELAY_MILLIS);
-                        } catch (InterruptedException e) {
-                        }
+                        sleep(FAST_PULSE_DELAY_MILLIS);
                     }
                     numberOfRuns++;
                 }
@@ -252,16 +244,9 @@ public class LightRingControl {
                 int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, t});
                 colors[j] = color;
             }
-            try {
-                mLedstrip.write(colors);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
 
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-            }
+            writeToLEDStrip(colors);
+            sleep(delay);
         }
     }
 
@@ -278,10 +263,15 @@ public class LightRingControl {
             } catch (IOException e) {
             }
 
-            try {
-                Thread.sleep(delay);
-            } catch (InterruptedException e) {
-            }
+            sleep(delay);
+        }
+    }
+
+    private void sleep(long delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Failed to sleep", e);
         }
     }
 
@@ -289,11 +279,7 @@ public class LightRingControl {
         if (ledThread != null) {
             ledThread.interrupt();
             ledThread = null;
-            try {
-                mLedstrip.write(new int[NUMBER_OF_LEDS]);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            writeToLEDStrip(new int[NUMBER_OF_LEDS]);
         }
     }
 
@@ -303,10 +289,6 @@ public class LightRingControl {
         for (int i = 0; i < NUMBER_OF_LEDS; i++) {
             colors[i] = color;
         }
-        try {
-            mLedstrip.write(colors);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        writeToLEDStrip(colors);
     }
 }

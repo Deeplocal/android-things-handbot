@@ -14,10 +14,13 @@ import java.util.Map;
 
 public class RockPaperScissors implements Game {
 
+    private static final String TAG                    = RockPaperScissors.class.getSimpleName();
+
+    public static final int MONITOR_TIME               = 2000;
     private static final long WAIT_FOR_NEW_ROUND_DELAY = 800;
     private static final long START_ROUND_TIME         = 1500;
-    public static final int MONITOR_TIME               = 2000;
     private static final int ORANGE                    = 0xFFA500;
+
     private static final long ANIMATION_WAIT_TIME      = 3000;
 
     private GameStateListener gameStateListener;
@@ -133,7 +136,7 @@ public class RockPaperScissors implements Game {
             case DETERMINE_ROUND_WINNER:
                 String userThrow = getUserThrow();
                 GAME_RESULTS gameResults = getGameResults(userThrow);
-                Log.i("STATE", "vs: " + thrownAction + " vs " + userThrow);
+                Log.i(TAG, "vs: " + thrownAction + " vs " + userThrow);
                 if (gameResults == GAME_RESULTS.WIN) {
                     roundWins++;
                 } else if (gameResults == GAME_RESULTS.LOSS) {
@@ -233,7 +236,7 @@ public class RockPaperScissors implements Game {
                 try {
                     Thread.sleep(time);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Failed to sleep on RPS process", e);
                 }
             }
         });
