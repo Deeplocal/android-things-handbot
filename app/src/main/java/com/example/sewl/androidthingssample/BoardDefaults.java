@@ -23,5 +23,5 @@ public interface BoardDefaults {
     String DEFAULT_SPI_BUS        = "SPI3.0";
 
     int LED_BRIGHTNESS            = 28;
-    float DEFAULT_VOLUME          = 0.3f;
+    float DEFAULT_VOLUME          = 0.6f;
 }

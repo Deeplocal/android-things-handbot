@@ -27,7 +27,7 @@ public class SimonSays implements Game {
 
     private static final int MAX_ROUNDS                    = 5;
 
-    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS, Signs.SPIDERMAN, Signs.LOSER, Signs.THREE, Signs.OK, Signs.ONE };
+    private String[] ACTIONS = new String[] { Signs.ROCK, Signs.SCISSORS, Signs.SPIDERMAN, Signs.LOSER, Signs.THREE, Signs.ONE };
 
     private Map<String, Integer> monitoredActions = new HashMap();
 

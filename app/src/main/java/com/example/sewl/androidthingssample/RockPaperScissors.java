@@ -45,6 +45,8 @@ public class RockPaperScissors implements Game {
 
     private Thread rpsThread;
 
+    private int noInputFoundRounds = 0;
+
     public RockPaperScissors(HandController handController, GameStateListener gameStateListener,
                              LightRingControl lightRingControl, SoundController soundController) {
         this.handController = handController;
@@ -73,7 +75,8 @@ public class RockPaperScissors implements Game {
     private enum GAME_RESULTS {
         WIN,
         LOSS,
-        TIE
+        TIE,
+        NO_INPUT
     }
 
     private STATES currentState = STATES.IDLE;
@@ -141,6 +144,8 @@ public class RockPaperScissors implements Game {
                     roundWins++;
                 } else if (gameResults == GAME_RESULTS.LOSS) {
                     roundLosses++;
+                } else if (gameResults == GAME_RESULTS.NO_INPUT) {
+                    noInputFoundRounds++;
                 }
 
                 if (gameOver()) {
@@ -153,8 +158,15 @@ public class RockPaperScissors implements Game {
                         soundController.playSound(SoundController.SOUNDS.TIE);
                     } else if (gameResults == GAME_RESULTS.WIN) {
                         soundController.playSound(SoundController.SOUNDS.ROUND_WIN);
-                    } else {
+                    } else if (gameResults == GAME_RESULTS.LOSS) {
                         soundController.playSound(SoundController.SOUNDS.ROUND_LOSS);
+                    } else {
+                        if (noInputFoundRounds >= 3) {
+                            currentState = STATES.LOSS;
+                        } else {
+                            lightRingControl.flash(1, ORANGE);
+                            soundController.playSound(SoundController.SOUNDS.TIE);
+                        }
                     }
                 }
                 handController.moveToRPSReady();
@@ -255,7 +267,7 @@ public class RockPaperScissors implements Game {
 
     private GAME_RESULTS getGameResults(String seenAction) {
         if (seenAction == null) {
-            return GAME_RESULTS.TIE;
+            return GAME_RESULTS.NO_INPUT;
         }
 
         if (seenAction.equals(Signs.ROCK)) {
@@ -302,6 +314,7 @@ public class RockPaperScissors implements Game {
     private void resetGame() {
         roundLosses = 0;
         roundWins = 0;
+        noInputFoundRounds = 0;
         lightRingControl.setRPSScore(0, 0);
     }
 

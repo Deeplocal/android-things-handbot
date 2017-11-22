@@ -38,6 +38,8 @@ public class StandbyController implements GameStateListener {
 
     private int seenActions = 0;
 
+    private int consecutiveNegatives;
+
     public enum STATES {
         IDLE,
         ROCK_PAPER_SCISSORS,
@@ -56,10 +58,15 @@ public class StandbyController implements GameStateListener {
     public void run(String action, List<Classifier.Recognition> results) {
         if (currentState == STATES.MIRROR) {
             logMirrorAction(action, results);
+            logConsecutiveNegatives(action);
 
             if (shouldStartGame()) {
+                consecutiveNegatives = 0;
                 clearLoggedActions();
                 startGame();
+            } else if (consecutiveNegatives >= 50) {
+                consecutiveNegatives = 0;
+                handController.loose();
             } else if (shouldMirror(results)) {
                 clearLoggedActions();
                 runMirror(action);
@@ -68,6 +75,14 @@ public class StandbyController implements GameStateListener {
             runGame(action, results);
         } else if (currentState == STATES.MATCHING) {
             runGame(action, results);
+        }
+    }
+
+    private void logConsecutiveNegatives(String action) {
+        if (Signs.NEGATIVE.equals(action)) {
+            consecutiveNegatives++;
+        } else {
+            consecutiveNegatives = 0;
         }
     }
 
@@ -109,6 +124,9 @@ public class StandbyController implements GameStateListener {
     }
 
     private boolean shouldMirror(List<Classifier.Recognition> results) {
+        if (Signs.NEGATIVE.equals(results.get(0))) {
+            return false;
+        }
         return results.get(0).getConfidence() > MINIMUM_MIRROR_CONFIDENCE || getSmoothedAction() != null;
     }
 

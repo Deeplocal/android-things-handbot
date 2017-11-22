@@ -67,6 +67,9 @@ public class HandController {
             case Signs.OK:
                 ok();
                 break;
+            case Signs.ONE:
+                ok();
+                break;
             case Signs.THREE:
                 three();
                 break;
@@ -191,9 +194,9 @@ public class HandController {
     }
 
     public void ok() {
-        middleFinger.setAngle(150);
-        ringFinger.setAngle(140);
-        pinky.setAngle(130);
+        middleFinger.setAngle(50);
+        ringFinger.setAngle(50);
+        pinky.setAngle(50);
         indexFinger.flex();
         thumb.flex();
         forearm.loose();
