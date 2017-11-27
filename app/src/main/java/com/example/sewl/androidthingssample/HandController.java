@@ -76,6 +76,9 @@ public class HandController {
             case Signs.LOSER:
                 loser();
                 break;
+            case Signs.HANG_LOOSE:
+                loser();
+                break;
         }
     }
 
@@ -87,10 +90,20 @@ public class HandController {
             case Signs.SCISSORS:
                 mirrorScissors();
                 break;
-            case Signs.PAPER:
-                mirrorPaper();
+            case Signs.HANG_LOOSE:
+                hangLoose();
                 break;
         }
+    }
+
+    private void hangLoose() {
+        indexFinger.flex();
+        middleFinger.flex();
+        thumb.loose();
+        ringFinger.flex();
+        pinky.loose();
+        forearm.loose();
+        wrist.parallelToGround();
     }
 
     private void spiderman() {

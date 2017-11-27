@@ -103,6 +103,7 @@ public class ImageClassifierActivity extends Activity
         classifiers.put(Signs.SCISSORS, rpsTensorFlowClassifier);
         classifiers.put(Signs.LOSER, loserThreeClassifier);
         classifiers.put(Signs.ONE, oneRockClassifier);
+        classifiers.put(Signs.HANG_LOOSE, mirrorClassifier);
         classifiers.put("rps", rpsTensorFlowClassifier);
         classifiers.put("mirror", mirrorClassifier);
         classifiers.put("simon_says", rpsTensorFlowClassifier);
