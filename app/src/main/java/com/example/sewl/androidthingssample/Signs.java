@@ -15,4 +15,5 @@ public interface Signs {
     String ONE          = "one";
     String HANG_LOOSE   = "hangloose";
     String NEGATIVE     = "negative";
+    String COVERED      = "covered";
 }

@@ -1,4 +1,5 @@
 rock
 scissors
 negative
-hangloose
+hang_loose
+covered

@@ -20,8 +20,9 @@ public interface BoardDefaults {
     }
 
     String CONFIG_BUTTON_GPIO     = "GPIO_33";
+    String RESET_BUTTON_GPIO      = "GPIO_35";
     String DEFAULT_SPI_BUS        = "SPI3.0";
 
     int LED_BRIGHTNESS            = 28;
-    float DEFAULT_VOLUME          = 1f;
+    float DEFAULT_VOLUME          = 0.2f;
 }

@@ -15,6 +15,9 @@ import java.util.Map;
 
 public class ImageClassificationThread extends Thread {
 
+    public static final int RESET_CODE     = 101;
+    public static final int CLASSIFY_CODE  = 102;
+
     private static final String TAG = ImageClassificationThread.class.getSimpleName();
 
     private final Map<String, TensorFlowImageClassifier> classifiers;
@@ -41,8 +44,12 @@ public class ImageClassificationThread extends Thread {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                if (!classifyingImage) {
-                    classifyImage((Bitmap) msg.obj);
+                if (msg.arg1 == RESET_CODE) {
+                    standbyController.reset();
+                } else {
+                    if (!classifyingImage) {
+                        classifyImage((Bitmap) msg.obj);
+                    }
                 }
             }
         };

@@ -52,6 +52,8 @@ public class ImageClassifierActivity extends Activity
 
     private SoundController soundController;
 
+    private ButtonInputDriver resetButton;
+
     private HandController handController;
 
     private CameraHandler mCameraHandler;
@@ -119,7 +121,7 @@ public class ImageClassifierActivity extends Activity
         lightRingControl.setColor(Color.BLACK);
 
         runHandInit();
-        setupConfigButton();
+        setupButtons();
     }
 
     private void runHandInit() {
@@ -145,10 +147,12 @@ public class ImageClassifierActivity extends Activity
         }, 10000);
     }
 
-    private void setupConfigButton() {
+    private void setupButtons() {
         try {
             mButtonInputDriver = new ButtonInputDriver(BoardDefaults.CONFIG_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE);
+            resetButton = new ButtonInputDriver(BoardDefaults.RESET_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_E);
             mButtonInputDriver.register();
+            resetButton.register();
         } catch (IOException e) {}
     }
 
@@ -165,15 +169,23 @@ public class ImageClassifierActivity extends Activity
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        keyPresses++;
-        if (keyPresses >= 3 && currentState == STATES.STARTUP) {
-            currentState = STATES.CONFIGURE;
-            lightRingControl.setColor(Color.CYAN);
-            soundController.playSound(SoundController.SOUNDS.CORRECT);
-            runFlexForearmTest();
-        } else if (currentState == STATES.CONFIGURE) {
-            settingsRepository.incrementForearmOffset();
-            runFlexForearmTest();
+        if (keyCode == KeyEvent.KEYCODE_SPACE) {
+            keyPresses++;
+            if (keyPresses >= 3 && currentState == STATES.STARTUP) {
+                currentState = STATES.CONFIGURE;
+                lightRingControl.setColor(Color.CYAN);
+                soundController.playSound(SoundController.SOUNDS.CORRECT);
+                runFlexForearmTest();
+            } else if (currentState == STATES.CONFIGURE) {
+                settingsRepository.incrementForearmOffset();
+                runFlexForearmTest();
+            }
+        } else if (keyCode == KeyEvent.KEYCODE_E) {
+            if (imageClassificationThread != null && imageClassificationThread.isAlive()) {
+                Message msg = new Message();
+                msg.arg1 = ImageClassificationThread.RESET_CODE;
+                imageClassificationThread.getHandler().sendMessage(msg);
+            }
         }
         return super.onKeyUp(keyCode, event);
     }

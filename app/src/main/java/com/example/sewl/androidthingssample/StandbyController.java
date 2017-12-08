@@ -38,6 +38,8 @@ public class StandbyController implements GameStateListener {
 
     private int seenActions = 0;
 
+    private int consecutiveCoveredResults = 0;
+
     private int consecutiveNegatives;
 
     public enum STATES {
@@ -59,11 +61,15 @@ public class StandbyController implements GameStateListener {
         if (currentState == STATES.MIRROR) {
             logMirrorAction(action, results);
             logConsecutiveNegatives(action);
+            logConsecutiveCovered(action);
 
             if (shouldStartGame()) {
                 consecutiveNegatives = 0;
                 clearLoggedActions();
                 startGame();
+            } else if (consecutiveCoveredResults >= 7 ) {
+                consecutiveCoveredResults = 0;
+                runBackOffAnimation();
             } else if (consecutiveNegatives >= 50) {
                 consecutiveNegatives = 0;
                 handController.loose();
@@ -78,11 +84,33 @@ public class StandbyController implements GameStateListener {
         }
     }
 
+    public void reset() {
+        currentState = STATES.MIRROR;
+        consecutiveCoveredResults = 0;
+        consecutiveNegatives = 0;
+        clearLoggedActions();
+        handController.loose();
+        lightRingControl.setColor(Color.BLACK);
+    }
+
+    private void runBackOffAnimation() {
+        lightRingControl.flash(1, Color.RED);
+        soundController.playSound(SoundController.SOUNDS.TIE);
+    }
+
     private void logConsecutiveNegatives(String action) {
         if (Signs.NEGATIVE.equals(action)) {
             consecutiveNegatives++;
         } else {
             consecutiveNegatives = 0;
+        }
+    }
+
+    private void logConsecutiveCovered(String action) {
+        if (Signs.COVERED.equals(action)) {
+            consecutiveCoveredResults++;
+        } else {
+            consecutiveCoveredResults = 0;
         }
     }
 

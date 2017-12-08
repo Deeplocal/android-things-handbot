@@ -97,7 +97,7 @@ public class RockPaperScissors implements Game {
             public void run() {
                 currentState = STATES.INITIATE;
             }
-        }, 3000);
+        }, 1000);
     }
 
     @Override
