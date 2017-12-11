@@ -1,0 +1,5 @@
+rock
+scissors
+negative
+hang_loose
+covered
