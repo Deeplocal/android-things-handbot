@@ -23,7 +23,7 @@ public class SimonSays implements Game {
     private static final long MONITOR_FOR_SIGN_WAIT_TIME   = 2500;
     private static final long PAUSE_BETWEEN_SIGN_WAIT_TIME = 600;
     private static final long CHOOSE_SIGNS_WAIT_DELAY      = 3500;
-    private static final float MIN_SIGN_CONFIDENCE         = 0.60f;
+    private static final float MIN_SIGN_CONFIDENCE         = 0.80f;
 
     private static final int MAX_ROUNDS                    = 5;
 
