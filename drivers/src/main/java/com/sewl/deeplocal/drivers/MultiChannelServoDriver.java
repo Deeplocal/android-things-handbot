@@ -1,4 +1,4 @@
-package com.example.sewl.androidthingssample;
+package com.sewl.deeplocal.drivers;
 
 import android.os.Handler;
 import android.util.Log;
