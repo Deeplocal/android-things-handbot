@@ -283,6 +283,6 @@ public class HandController {
     }
 
     public void shutdown() {
-        pwmDriver.shutDown();
+        pwmDriver.close();
     }
 }

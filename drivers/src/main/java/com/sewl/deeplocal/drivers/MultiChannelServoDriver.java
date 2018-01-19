@@ -113,7 +113,7 @@ public class MultiChannelServoDriver {
         }
     }
 
-    public void shutDown() {
+    public void close() {
         if (i2cDevice != null) {
             try {
                 i2cDevice.close();
