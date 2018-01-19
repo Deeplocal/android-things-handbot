@@ -38,7 +38,7 @@ public class ImageClassifierActivity extends Activity
 
     private SettingsRepository settingsRepository;
 
-    private ButtonInputDriver mButtonInputDriver;
+    private ButtonInputDriver buttonInputDriver;
 
     private ImagePreprocessor imagePreprocessor;
 
@@ -48,7 +48,7 @@ public class ImageClassifierActivity extends Activity
 
     private STATES currentState = STATES.IDLE;
 
-    private HandlerThread mBackgroundThread;
+    private HandlerThread backgroundThread;
 
     private SoundController soundController;
 
@@ -56,9 +56,9 @@ public class ImageClassifierActivity extends Activity
 
     private HandController handController;
 
-    private CameraHandler mCameraHandler;
+    private CameraHandler cameraHandler;
 
-    private Handler mBackgroundHandler;
+    private Handler backgroundHandler;
 
     private int keyPresses = 0;
 
@@ -110,10 +110,10 @@ public class ImageClassifierActivity extends Activity
         classifiers.put("mirror", mirrorClassifier);
         classifiers.put("simon_says", rpsTensorFlowClassifier);
 
-        mBackgroundThread = new HandlerThread("BackgroundThread");
-        mBackgroundThread.start();
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
-        mBackgroundHandler.post(mInitializeOnBackground);
+        backgroundThread = new HandlerThread("BackgroundThread");
+        backgroundThread.start();
+        backgroundHandler = new Handler(backgroundThread.getLooper());
+        backgroundHandler.post(mInitializeOnBackground);
 
         imageClassificationThread = new ImageClassificationThread(standbyController, classifiers, lightRingControl);
         imageClassificationThread.start();
@@ -149,9 +149,9 @@ public class ImageClassifierActivity extends Activity
 
     private void setupButtons() {
         try {
-            mButtonInputDriver = new ButtonInputDriver(BoardDefaults.CONFIG_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE);
+            buttonInputDriver = new ButtonInputDriver(BoardDefaults.CONFIG_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE);
             resetButton = new ButtonInputDriver(BoardDefaults.RESET_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_E);
-            mButtonInputDriver.register();
+            buttonInputDriver.register();
             resetButton.register();
         } catch (IOException e) {}
     }
@@ -159,11 +159,11 @@ public class ImageClassifierActivity extends Activity
     private Runnable mInitializeOnBackground = new Runnable() {
         @Override
         public void run() {
-            mCameraHandler = CameraHandler.getInstance();
-            mCameraHandler.initializeCamera(
-                    ImageClassifierActivity.this, mBackgroundHandler,
+            cameraHandler = CameraHandler.getInstance();
+            cameraHandler.initializeCamera(
+                    ImageClassifierActivity.this, backgroundHandler,
                     ImageClassifierActivity.this);
-            mCameraHandler.setCameraReadyListener(ImageClassifierActivity.this);
+            cameraHandler.setCameraReadyListener(ImageClassifierActivity.this);
         }
     };
 
@@ -212,7 +212,7 @@ public class ImageClassifierActivity extends Activity
                 message.obj = bitmap;
                 imageClassificationThread.getHandler().sendMessage(message);
             }
-            mCameraHandler.takePicture();
+            cameraHandler.takePicture();
         }
     }
 
@@ -220,15 +220,15 @@ public class ImageClassifierActivity extends Activity
     protected void onDestroy() {
         super.onDestroy();
         try {
-            if (mBackgroundThread != null) mBackgroundThread.quit();
+            if (backgroundThread != null) backgroundThread.quit();
         } catch (Throwable t) { }
 
         handController.shutdown();
-        mBackgroundThread = null;
-        mBackgroundHandler = null;
+        backgroundThread = null;
+        backgroundHandler = null;
 
         try {
-            if (mCameraHandler != null) mCameraHandler.shutDown();
+            if (cameraHandler != null) cameraHandler.shutDown();
         } catch (Throwable t) { }
         try {
             if (rpsTensorFlowClassifier != null) rpsTensorFlowClassifier.destroyClassifier();
@@ -240,6 +240,6 @@ public class ImageClassifierActivity extends Activity
 
     @Override
     public void onCameraReady() {
-        mCameraHandler.takePicture();
+        cameraHandler.takePicture();
     }
 }

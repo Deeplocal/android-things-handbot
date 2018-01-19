@@ -25,7 +25,7 @@ public class LightRingControl {
 
     private Thread ledThread;
 
-    private Apa102 mLedstrip;
+    private Apa102 ledstrip;
 
     private int totalPulsesToRun = 0;
 
@@ -34,8 +34,8 @@ public class LightRingControl {
 
     public void init() {
         try {
-            mLedstrip = new Apa102(BoardDefaults.DEFAULT_SPI_BUS, Apa102.Mode.RBG, Apa102.Direction.NORMAL);
-            mLedstrip.setBrightness(BoardDefaults.LED_BRIGHTNESS);
+            ledstrip = new Apa102(BoardDefaults.DEFAULT_SPI_BUS, Apa102.Mode.RBG, Apa102.Direction.NORMAL);
+            ledstrip.setBrightness(BoardDefaults.LED_BRIGHTNESS);
         } catch (IOException e) { }
     }
 
@@ -74,7 +74,7 @@ public class LightRingControl {
             }
 
             try {
-                mLedstrip.write(colors);
+                ledstrip.write(colors);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -93,7 +93,7 @@ public class LightRingControl {
             colors[i] = Color.RED;
         }
         try {
-            mLedstrip.write(colors);
+            ledstrip.write(colors);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -124,7 +124,7 @@ public class LightRingControl {
 
     private void writeToLEDStrip(int[] colors) {
         try {
-            mLedstrip.write(colors);
+            ledstrip.write(colors);
         } catch (IOException e) {
             Log.e(TAG, "Failed to write to LED strip", e);
         }
@@ -223,7 +223,7 @@ public class LightRingControl {
                             colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
                         }
                         try {
-                            mLedstrip.write(colors);
+                            ledstrip.write(colors);
                         } catch (IOException e) {}
 
                         sleep(FAST_PULSE_DELAY_MILLIS);
@@ -259,7 +259,7 @@ public class LightRingControl {
                 colors[j] = color;
             }
             try {
-                mLedstrip.write(colors);
+                ledstrip.write(colors);
             } catch (IOException e) {
             }
 

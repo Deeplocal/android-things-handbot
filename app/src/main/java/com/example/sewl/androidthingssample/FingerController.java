@@ -9,22 +9,20 @@ import android.os.Handler;
 public class FingerController {
 
     public static final int SERVO_OFF_VALUE = 0;
-
-    private static int FLEXED_ANGLE = 180;
-
-    private static int LOOSE_ANGLE  = 0;
-
-    private final int offset;
-
-    private int channel;
-
-    private int currentAngle = -1;
+    private static int FLEXED_ANGLE         = 180;
+    private static int LOOSE_ANGLE          = 0;
 
     private MultiChannelServoDriver servoDriver;
 
     private boolean reverseAngle;
 
     private Handler settleServoHandler = new Handler();
+
+    private final int offset;
+
+    private int channel;
+
+    private int currentAngle = -1;
 
     public FingerController(int channel, MultiChannelServoDriver servoDriver, boolean reverseAngle, int offset) {
         this.channel = channel;
