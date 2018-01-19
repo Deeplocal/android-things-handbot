@@ -25,6 +25,11 @@ public class ImageClassifierActivity extends Activity
 
     private static final String TAG = ImageClassifierActivity.class.getSimpleName();
 
+    public static final int HAND_INIT_RPS_READY_TIME        = 600;
+    public static final int HAND_INIT_MOVE_TO_LOOSE_TIME    = 1200;
+    public static final int HAND_INIT_START_RUN_TIME        = 10000;
+    public static final int FOREARM_TEST_MOVEMENT_DELAY     = 500;
+
     private Map<String, TensorFlowImageClassifier> classifiers = new HashMap();
 
     private ImageClassificationThread imageClassificationThread;
@@ -49,7 +54,7 @@ public class ImageClassifierActivity extends Activity
 
     private LightRingControl lightRingControl;
 
-    private STATES currentState = STATES.IDLE;
+    private States currentState = States.IDLE;
 
     private HandlerThread backgroundThread;
 
@@ -65,7 +70,7 @@ public class ImageClassifierActivity extends Activity
 
     private int keyPresses = 0;
 
-    private enum STATES {
+    private enum States {
         IDLE,
         STARTUP,
         CONFIGURE,
@@ -135,19 +140,19 @@ public class ImageClassifierActivity extends Activity
             public void run() {
                 handController.moveToRPSReady();
             }
-        }, 600);
+        }, HAND_INIT_RPS_READY_TIME);
         handInitHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 handController.loose();
             }
-        }, 1200);
+        }, HAND_INIT_MOVE_TO_LOOSE_TIME);
         handInitHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                currentState = STATES.RUN;
+                currentState = States.RUN;
             }
-        }, 10000);
+        }, HAND_INIT_START_RUN_TIME);
     }
 
     private void setupButtons() {
@@ -176,12 +181,12 @@ public class ImageClassifierActivity extends Activity
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_SPACE) {
             keyPresses++;
-            if (keyPresses >= 3 && currentState == STATES.STARTUP) {
-                currentState = STATES.CONFIGURE;
+            if (keyPresses >= 3 && currentState == States.STARTUP) {
+                currentState = States.CONFIGURE;
                 lightRingControl.setColor(Color.CYAN);
-                soundController.playSound(SoundController.SOUNDS.CORRECT);
+                soundController.playSound(SoundController.Sounds.CORRECT);
                 runFlexForearmTest();
-            } else if (currentState == STATES.CONFIGURE) {
+            } else if (currentState == States.CONFIGURE) {
                 settingsRepository.incrementForearmOffset();
                 runFlexForearmTest();
             }
@@ -202,7 +207,7 @@ public class ImageClassifierActivity extends Activity
             public void run() {
                 handController.forearm.loose();
             }
-        }, 500);
+        }, FOREARM_TEST_MOVEMENT_DELAY);
     }
 
     @Override

@@ -51,7 +51,7 @@ public class TensorflowImageOperations {
         AssetManager assetManager = context.getAssets();
         ArrayList<String> result = new ArrayList<>();
         try (InputStream is = assetManager.open(labelFile);
-             BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
+            BufferedReader br = new BufferedReader(new InputStreamReader(is))) {
             String line;
             while ((line = br.readLine()) != null) {
                 result.add(line);

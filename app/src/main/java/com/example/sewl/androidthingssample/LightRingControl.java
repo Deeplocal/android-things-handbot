@@ -15,13 +15,26 @@ public class LightRingControl {
 
     private static final String TAG = LightRingControl.class.getSimpleName();
 
-    public static final long FAST_PULSE_DELAY_MILLIS  = 4;
-    private static final int NUMBER_OF_LEDS           = 24;
-    private static final int PULSE_DELAY              = 10;
-    private static final int NUMBER_OF_LED_STEPS      = 720;
-    private static final float SWIRL_SECONDS          = 0.5f;
+    public static final long FAST_PULSE_ANIMATION_STEP_MILLIS = 4;
+    private static final int NUMBER_OF_LEDS                     = 24;
+    public static final int LEDS_PER_RPS_SCORE_MARK             = NUMBER_OF_LEDS / 3;
+    public static final int LEDS_PER_MATCHING_SCORE_MARK        = NUMBER_OF_LEDS / 8;
+    private static final int PULSE_DELAY                        = 10;
+    private static final int NUMBER_OF_LED_STEPS                = 720;
+    private static final float SWIRL_SECONDS                    = 0.5f;
 
-    private static final long FLASH_DELAY             = 1;
+    private static final long FLASH_DELAY                       = 1;
+    public static final int MILLIS_PER_SECOND                   = 1000;
+    public static final float SWIRL_BRIGHTNESS_AMPLITUDE_MAX    = 0.3f;
+    public static final float MAX_COLOR_ALPHA                   = 1.0f;
+    public static final int PLAYER_SCORE_LEDS_PER_SECTION       = 8;
+    public static final float PLAYER_SCORE_HSV_VALUE            = 0.6f;
+    public static final float LED_RING_START_OFFSET_PERCENTAGE  = 0.70f;
+    public static final int MAX_SCORE_DEGREES_OF_HSV_VALUE = 170;
+    public static final float DEGREES_IN_A_CIRCLE               = 360.0f;
+    public static final int LED_RING_START_OFFSET_INDEX         = Math.round(NUMBER_OF_LEDS * LED_RING_START_OFFSET_PERCENTAGE);
+    private float[] GREEN_HSV                                   = new float[3];
+    private float[] RED_HSV                                     = new float[3];
 
     private Thread ledThread;
 
@@ -36,12 +49,16 @@ public class LightRingControl {
         try {
             ledstrip = new Apa102(BoardDefaults.DEFAULT_SPI_BUS, Apa102.Mode.RBG, Apa102.Direction.NORMAL);
             ledstrip.setBrightness(BoardDefaults.LED_BRIGHTNESS);
+
+            // Calculate HSV once for colors
+            Color.RGBToHSV(Color.red(Color.RED), Color.green(Color.RED), Color.blue(Color.RED), RED_HSV);
+            Color.RGBToHSV(Color.red(Color.GREEN), Color.green(Color.GREEN), Color.blue(Color.GREEN), GREEN_HSV);
         } catch (IOException e) { }
     }
 
     public void runSwirl(int pulsesToRun, final int color, final float totalPulseSeconds) {
         final float[] hsv = new float[3];
-        final long totalMillis = Math.round((totalPulseSeconds / (float) (NUMBER_OF_LED_STEPS)) * 1000);
+        final long totalMillis = Math.round((totalPulseSeconds / (float) (NUMBER_OF_LED_STEPS)) * MILLIS_PER_SECOND);
         Color.RGBToHSV(Color.red(color), Color.green(color), Color.blue(color), hsv);
         this.totalPulsesToRun = pulsesToRun;
         ledThread = new Thread(new Runnable() {
@@ -68,22 +85,17 @@ public class LightRingControl {
             float t = i/(NUMBER_OF_LED_STEPS * 0.5f);
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 float offset = (float)j / (float) NUMBER_OF_LEDS;
-                double lightness = 0.3f * Math.sin(t * Math.PI - 2*offset);
-                int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, (float) lightness});
+                double lightness = SWIRL_BRIGHTNESS_AMPLITUDE_MAX * Math.sin(t * Math.PI - 2*offset);
+                int color = Color.HSVToColor(new float[]{ ledColor, MAX_COLOR_ALPHA, (float) lightness});
                 colors[j] = color;
             }
-
-            try {
-                ledstrip.write(colors);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            writeToLEDStrip(colors);
             sleep(pulseDelay);
         }
     }
 
     public void setRPSScore(int me, int them) {
-        int ledsPerMark = NUMBER_OF_LEDS/3;
+        int ledsPerMark = LEDS_PER_RPS_SCORE_MARK;
         int[] colors = new int[NUMBER_OF_LEDS];
 
         for (int i = 0; i < me*ledsPerMark; i++) {
@@ -92,34 +104,12 @@ public class LightRingControl {
         for (int i = NUMBER_OF_LEDS - 1; i > (NUMBER_OF_LEDS - 1 - them*ledsPerMark); i--) {
             colors[i] = Color.RED;
         }
-        try {
-            ledstrip.write(colors);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        writeToLEDStrip(colors);
     }
 
     public void showMatchingLights(int number, int wrong) {
-        int ledsPerMark = NUMBER_OF_LEDS/8;
         int[] colors = new int[NUMBER_OF_LEDS];
-        final float[] hsv = new float[3];
-        Color.RGBToHSV(Color.red(Color.RED), Color.green(Color.RED), Color.blue(Color.RED), hsv);
-        int red = Color.HSVToColor(new float[]{hsv[0], 1.0f, 0.6f});
-        Color.RGBToHSV(Color.red(Color.GREEN), Color.green(Color.GREEN), Color.blue(Color.GREEN), hsv);
-        int green = Color.HSVToColor(new float[]{hsv[0], 1.0f, 0.6f});
-
-        for (int i = 0; i < number; i++) {
-            colors[shiftLedIndex(i*ledsPerMark)] = Color.BLACK;
-            colors[shiftLedIndex(i*ledsPerMark + 1)] = green;
-            colors[shiftLedIndex(i*ledsPerMark + 2)] = Color.BLACK;
-        }
-        for (int i = number; i < number + wrong; i++) {
-            colors[shiftLedIndex(i*ledsPerMark)] = Color.BLACK;
-            colors[shiftLedIndex(i*ledsPerMark + 1)] = red;
-            colors[shiftLedIndex(i*ledsPerMark + 2)] = Color.BLACK;
-        }
-
-        writeToLEDStrip(colors);
+        setLEDsForCorrectAndIncorrect(colors, number, wrong, 1.0f);
     }
 
     private void writeToLEDStrip(int[] colors) {
@@ -131,7 +121,7 @@ public class LightRingControl {
     }
 
     private int shiftLedIndex(int index) {
-        return (index + Math.round(NUMBER_OF_LEDS * 0.70f)) % NUMBER_OF_LEDS;
+        return (index + LED_RING_START_OFFSET_INDEX) % NUMBER_OF_LEDS;
     }
 
     public void runPulse(int pulses, int color) {
@@ -174,14 +164,9 @@ public class LightRingControl {
         ledThread.start();
     }
 
-    public void runScorePulse(int pulses, final int right, final int wrong) {
+    public void runScorePulse(int pulses, final int correct, final int incorrect) {
         stopLedThread();
         totalPulsesToRun = pulses;
-        final float[] redHsv = new float[3];
-        final float[] greenHsv = new float[3];
-        final int ledsPerMark = NUMBER_OF_LEDS/8;
-        Color.RGBToHSV(Color.red(Color.RED), Color.green(Color.RED), Color.blue(Color.RED), redHsv);
-        Color.RGBToHSV(Color.red(Color.GREEN), Color.green(Color.GREEN), Color.blue(Color.GREEN), greenHsv);
 
         ledThread = new Thread(new Runnable() {
             @Override
@@ -189,44 +174,12 @@ public class LightRingControl {
                 int numberOfRuns = 0;
                 while(numberOfRuns < totalPulsesToRun) {
                     int[] colors = new int[NUMBER_OF_LEDS];
-                    for (int i = 0; i < 170; i+=2) {
-                        float t = i/360.0f;
-                        int pulseGreen = Color.HSVToColor(new float[]{ greenHsv[0], 1.0f, t*0.6f});
-                        for (int j = 0; j < right; j++) {
-                            colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
-                            colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseGreen;
-                            colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
-                        }
-                        int pulseRed = Color.HSVToColor(new float[] { redHsv[0], 1.0f, t*0.6f});
-                        for (int j = right; j < right + wrong; j++) {
-                            colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
-                            colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseRed;
-                            colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
-                        }
-
-                        writeToLEDStrip(colors);
-                        sleep(FAST_PULSE_DELAY_MILLIS);
+                    for (int i = 0; i < MAX_SCORE_DEGREES_OF_HSV_VALUE; i+=2) {
+                        animateLEDsForCorrectAndIncorrect(colors, i, correct, incorrect);
                     }
 
-                    for (int i = 170; i >= 0; i-=2) {
-                        float t = i/360.0f;
-                        int pulseGreen = Color.HSVToColor(new float[]{ greenHsv[0], 1.0f, t*0.6f});
-                        for (int j = 0; j < right; j++) {
-                            colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
-                            colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseGreen;
-                            colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
-                        }
-                        int pulseRed = Color.HSVToColor(new float[]{ redHsv[0], 1.0f, t*0.6f});
-                        for (int j = right; j < right + wrong; j++) {
-                            colors[shiftLedIndex(j * ledsPerMark)] = Color.BLACK;
-                            colors[shiftLedIndex(j * ledsPerMark + 1)] = pulseRed;
-                            colors[shiftLedIndex(j * ledsPerMark + 2)] = Color.BLACK;
-                        }
-                        try {
-                            ledstrip.write(colors);
-                        } catch (IOException e) {}
-
-                        sleep(FAST_PULSE_DELAY_MILLIS);
+                    for (int i = MAX_SCORE_DEGREES_OF_HSV_VALUE; i >= 0; i-=2) {
+                        animateLEDsForCorrectAndIncorrect(colors, i, correct, incorrect);
                     }
                     numberOfRuns++;
                 }
@@ -236,10 +189,32 @@ public class LightRingControl {
         ledThread.start();
     }
 
+    private void animateLEDsForCorrectAndIncorrect(int[] colors, int HSVValueDegree, int correctLEDs, int incorrectLEDs) {
+        float t = HSVValueDegree/ DEGREES_IN_A_CIRCLE;
+        setLEDsForCorrectAndIncorrect(colors, correctLEDs, incorrectLEDs, t);
+        sleep(FAST_PULSE_ANIMATION_STEP_MILLIS);
+    }
+
+    private void setLEDsForCorrectAndIncorrect(int[] colors, int correctLEDs, int incorrectLEDs, float t) {
+        int pulseGreen = Color.HSVToColor(new float[]{ GREEN_HSV[0], 1.0f, t*PLAYER_SCORE_HSV_VALUE});
+        for (int j = 0; j < correctLEDs; j++) {
+            colors[shiftLedIndex(j * LEDS_PER_MATCHING_SCORE_MARK)] = Color.BLACK;
+            colors[shiftLedIndex(j * LEDS_PER_MATCHING_SCORE_MARK + 1)] = pulseGreen;
+            colors[shiftLedIndex(j * LEDS_PER_MATCHING_SCORE_MARK + 2)] = Color.BLACK;
+        }
+        int pulseRed = Color.HSVToColor(new float[] { RED_HSV[0], 1.0f, t*PLAYER_SCORE_HSV_VALUE});
+        for (int j = correctLEDs; j < correctLEDs + incorrectLEDs; j++) {
+            colors[shiftLedIndex(j * LEDS_PER_MATCHING_SCORE_MARK)] = Color.BLACK;
+            colors[shiftLedIndex(j * LEDS_PER_MATCHING_SCORE_MARK + 1)] = pulseRed;
+            colors[shiftLedIndex(j * LEDS_PER_MATCHING_SCORE_MARK + 2)] = Color.BLACK;
+        }
+        writeToLEDStrip(colors);
+    }
+
     private void illuminate(float ledColor, long delay) {
         int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 0; i < 170; i+=2) {
-            float t = i/360.0f;
+            float t = i/DEGREES_IN_A_CIRCLE;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, t});
                 colors[j] = color;
@@ -253,15 +228,12 @@ public class LightRingControl {
     private void deluminate(float ledColor, long delay) {
         int[] colors = new int[NUMBER_OF_LEDS];
         for (int i = 170; i >= 0; i-=2) {
-            float t = i/360.0f;
+            float t = i/ DEGREES_IN_A_CIRCLE;
             for (int j = 0; j < NUMBER_OF_LEDS; j++) {
                 int color = Color.HSVToColor(new float[]{ ledColor, 1.0f, t});
                 colors[j] = color;
             }
-            try {
-                ledstrip.write(colors);
-            } catch (IOException e) {
-            }
+            writeToLEDStrip(colors);
 
             sleep(delay);
         }

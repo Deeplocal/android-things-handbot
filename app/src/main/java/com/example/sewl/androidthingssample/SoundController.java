@@ -9,7 +9,7 @@ import android.media.MediaPlayer;
 
 public class SoundController {
 
-    public enum SOUNDS {
+    public enum Sounds {
         START_GAME,
         TIE,
         WIN,
@@ -29,28 +29,28 @@ public class SoundController {
         this.context = context;
     }
 
-    public void playSound(SOUNDS sound) {
-        if (sound == SOUNDS.CORRECT) {
+    public void playSound(Sounds sound) {
+        if (sound == Sounds.CORRECT) {
             play(R.raw.success_tone);
-        } else if (sound == SOUNDS.INCORRECT) {
+        } else if (sound == Sounds.INCORRECT) {
             play(R.raw.error_tone);
-        } else if (sound == SOUNDS.START_GAME) {
+        } else if (sound == Sounds.START_GAME) {
             play(R.raw.start_game);
-        } else if (sound == SOUNDS.RPS_BING) {
+        } else if (sound == Sounds.RPS_BING) {
             play(R.raw.c_l_tone);
-        } else if (sound == SOUNDS.RPS_BONG) {
+        } else if (sound == Sounds.RPS_BONG) {
             play(R.raw.c_h_tone);
-        } else if (sound == SOUNDS.TIE) {
+        } else if (sound == Sounds.TIE) {
             play(R.raw.error_tone);
-        } else if (sound == SOUNDS.WIN) {
+        } else if (sound == Sounds.WIN) {
             play(R.raw.game_win);
-        } else if (sound == SOUNDS.LOSS) {
+        } else if (sound == Sounds.LOSS) {
             play(R.raw.game_loss);
-        } else if (sound == SOUNDS.ROUND_WIN) {
+        } else if (sound == Sounds.ROUND_WIN) {
             play(R.raw.success_tone);
-        } else if (sound == SOUNDS.MIRROR) {
+        } else if (sound == Sounds.MIRROR) {
             play(R.raw.mirror_simon_says);
-        } else if (sound == SOUNDS.ROUND_LOSS) {
+        } else if (sound == Sounds.ROUND_LOSS) {
             play(R.raw.round_loss);
         }
     }

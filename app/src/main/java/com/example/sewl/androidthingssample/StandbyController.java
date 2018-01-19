@@ -24,7 +24,7 @@ public class StandbyController implements GameStateListener {
 
     private Map<String, Integer> monitoredActions = new HashMap<>();
 
-    private STATES currentState = STATES.IDLE;
+    private States currentState = States.IDLE;
 
     private String lastMirroredAction;
 
@@ -42,7 +42,7 @@ public class StandbyController implements GameStateListener {
 
     private int consecutiveNegatives;
 
-    public enum STATES {
+    public enum States {
         IDLE,
         ROCK_PAPER_SCISSORS,
         MATCHING,
@@ -53,12 +53,12 @@ public class StandbyController implements GameStateListener {
         this.handController = handController;
         this.lightRingControl = lightRingControl;
         this.soundController = soundController;
-        this.currentState = STATES.MIRROR;
+        this.currentState = States.MIRROR;
         lightRingControl.runPulse(1, Color.BLUE);
     }
 
     public void run(String action, List<Classifier.Recognition> results) {
-        if (currentState == STATES.MIRROR) {
+        if (currentState == States.MIRROR) {
             logMirrorAction(action, results);
             logConsecutiveNegatives(action);
             logConsecutiveCovered(action);
@@ -77,15 +77,15 @@ public class StandbyController implements GameStateListener {
                 clearLoggedActions();
                 runMirror(action);
             }
-        } else if (currentState == STATES.ROCK_PAPER_SCISSORS) {
+        } else if (currentState == States.ROCK_PAPER_SCISSORS) {
             runGame(action, results);
-        } else if (currentState == STATES.MATCHING) {
+        } else if (currentState == States.MATCHING) {
             runGame(action, results);
         }
     }
 
     public void reset() {
-        currentState = STATES.MIRROR;
+        currentState = States.MIRROR;
         consecutiveCoveredResults = 0;
         consecutiveNegatives = 0;
         clearLoggedActions();
@@ -95,7 +95,7 @@ public class StandbyController implements GameStateListener {
 
     private void runBackOffAnimation() {
         lightRingControl.flash(1, Color.RED);
-        soundController.playSound(SoundController.SOUNDS.TIE);
+        soundController.playSound(SoundController.Sounds.TIE);
     }
 
     private void logConsecutiveNegatives(String action) {
@@ -120,13 +120,13 @@ public class StandbyController implements GameStateListener {
             currentGame.shutdown();
             currentGame = null;
         }
-        currentState = STATES.MIRROR;
+        currentState = States.MIRROR;
     }
 
     public String getClassifierKey() {
-        if (currentState == STATES.IDLE) {
+        if (currentState == States.IDLE) {
             return null;
-        } else if (currentState == STATES.MIRROR) {
+        } else if (currentState == States.MIRROR) {
             return "mirror";
         } else {
             return currentGame != null ? currentGame.getClassifierKey() : null;
@@ -135,11 +135,11 @@ public class StandbyController implements GameStateListener {
 
     private void startGame() {
         if (Signs.ROCK.equals(lastMirroredAction)) {
-            currentState = STATES.ROCK_PAPER_SCISSORS;
+            currentState = States.ROCK_PAPER_SCISSORS;
             currentGame = new RockPaperScissors(handController, this, lightRingControl, soundController);
             currentGame.start();
         } else if (Signs.SCISSORS.equals(lastMirroredAction)) {
-            currentState = STATES.MATCHING;
+            currentState = States.MATCHING;
             currentGame = new SimonSays(handController, this, soundController, lightRingControl);
             currentGame.start();
         }

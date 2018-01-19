@@ -11,6 +11,8 @@ public class WristController {
     public static final int FLEXED_ANGLE             = 0;
     public static final int LOOSE_ANGLE              = 112;
     public static final int SERVO_OFF_VALUE          = 0;
+    public static final int SERVO_MAX_DEGREES        = 180;
+    public static final float MAX_RELAX_TIME_MILLIS  = 500.0f;
 
     private int channel;
 
@@ -51,7 +53,7 @@ public class WristController {
 
     private void settleServo(int angleMoved) {
         settleServoHandler.removeCallbacksAndMessages(null);
-        long relaxTime = (long) (((float) angleMoved / 180.0f) * 500.0f);
+        long relaxTime = (long) (((float) angleMoved / SERVO_MAX_DEGREES) * MAX_RELAX_TIME_MILLIS);
         settleServoHandler.postDelayed(new Runnable() {
             @Override
             public void run() {

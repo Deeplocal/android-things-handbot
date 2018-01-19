@@ -22,6 +22,7 @@ public class RockPaperScissors implements Game {
     private static final int ORANGE                    = 0xFFA500;
 
     private static final long ANIMATION_WAIT_TIME      = 3000;
+    public static final int COUNTDOWN_DELAY_MILLIS     = 2200;
 
     private GameStateListener gameStateListener;
 
@@ -55,7 +56,7 @@ public class RockPaperScissors implements Game {
         this.soundController = soundController;
     }
 
-    private enum STATES {
+    private enum States {
         IDLE,
         INITIATE,
         INITIATE_WAIT,
@@ -79,7 +80,7 @@ public class RockPaperScissors implements Game {
         NO_INPUT
     }
 
-    private STATES currentState = STATES.IDLE;
+    private States currentState = States.IDLE;
 
     @Override
     public void shutdown() {
@@ -91,18 +92,18 @@ public class RockPaperScissors implements Game {
     public void start() {
         lightRingControl.runSwirl(1, Color.BLUE);
         handController.moveToRPSReady();
-        soundController.playSound(SoundController.SOUNDS.START_GAME);
+        soundController.playSound(SoundController.Sounds.START_GAME);
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                currentState = STATES.INITIATE;
+                currentState = States.INITIATE;
             }
         }, 1000);
     }
 
     @Override
     public void stop() {
-        currentState = STATES.IDLE;
+        currentState = States.IDLE;
     }
 
     @Override
@@ -114,27 +115,27 @@ public class RockPaperScissors implements Game {
             case INITIATE:
                 resetRound();
                 setTransitionTime(START_ROUND_TIME);
-                currentState = STATES.INITIATE_WAIT;
+                currentState = States.INITIATE_WAIT;
                 break;
             case INITIATE_WAIT:
-                currentState = nextStateForWaitState(STATES.COUNTDOWN);
+                currentState = nextStateForWaitState(States.COUNTDOWN);
                 break;
             case COUNTDOWN:
                 lightRingControl.setRPSScore(roundWins, roundLosses);
-                currentState = STATES.THROW_WAIT;
+                currentState = States.THROW_WAIT;
                 thrownAction = ACTIONS[(int)(Math.random() * ACTIONS.length)];
-                setTransitionTime(2200);
+                setTransitionTime(COUNTDOWN_DELAY_MILLIS);
                 runRPSCountdown();
                 break;
             case THROW_WAIT:
-                currentState = nextStateForWaitState(STATES.MONITOR);
-                if (currentState == STATES.MONITOR) {
+                currentState = nextStateForWaitState(States.MONITOR);
+                if (currentState == States.MONITOR) {
                     setTransitionTime(MONITOR_TIME);
                 }
                 break;
             case MONITOR:
                 logAction(seenAction);
-                currentState = nextStateForWaitState(STATES.DETERMINE_ROUND_WINNER);
+                currentState = nextStateForWaitState(States.DETERMINE_ROUND_WINNER);
                 break;
             case DETERMINE_ROUND_WINNER:
                 String userThrow = getUserThrow();
@@ -149,23 +150,23 @@ public class RockPaperScissors implements Game {
                 }
 
                 if (gameOver()) {
-                    currentState = roundWins > roundLosses ? STATES.WIN : STATES.LOSS;
+                    currentState = roundWins > roundLosses ? States.WIN : States.LOSS;
                 } else {
                     setTransitionTime(WAIT_FOR_NEW_ROUND_DELAY);
-                    currentState = STATES.WAIT_FOR_NEW_ROUND;
+                    currentState = States.WAIT_FOR_NEW_ROUND;
                     if (gameResults == GAME_RESULTS.TIE) {
                         lightRingControl.flash(1, ORANGE);
-                        soundController.playSound(SoundController.SOUNDS.TIE);
+                        soundController.playSound(SoundController.Sounds.TIE);
                     } else if (gameResults == GAME_RESULTS.WIN) {
-                        soundController.playSound(SoundController.SOUNDS.ROUND_WIN);
+                        soundController.playSound(SoundController.Sounds.ROUND_WIN);
                     } else if (gameResults == GAME_RESULTS.LOSS) {
-                        soundController.playSound(SoundController.SOUNDS.ROUND_LOSS);
+                        soundController.playSound(SoundController.Sounds.ROUND_LOSS);
                     } else {
                         if (noInputFoundRounds >= 3) {
-                            currentState = STATES.LOSS;
+                            currentState = States.LOSS;
                         } else {
                             lightRingControl.flash(1, ORANGE);
-                            soundController.playSound(SoundController.SOUNDS.TIE);
+                            soundController.playSound(SoundController.Sounds.TIE);
                         }
                     }
                 }
@@ -173,37 +174,37 @@ public class RockPaperScissors implements Game {
                 lightRingControl.setRPSScore(roundWins, roundLosses);
                 break;
             case WIN:
-                soundController.playSound(SoundController.SOUNDS.WIN);
+                soundController.playSound(SoundController.Sounds.WIN);
                 lightRingControl.runSwirl(3, Color.GREEN);
                 setTransitionTime(ANIMATION_WAIT_TIME);
-                currentState = STATES.WAIT_FOR_NEW_GAME;
+                currentState = States.WAIT_FOR_NEW_GAME;
                 break;
             case LOSS:
-                soundController.playSound(SoundController.SOUNDS.LOSS);
+                soundController.playSound(SoundController.Sounds.LOSS);
                 lightRingControl.runSwirl(3, Color.RED);
                 setTransitionTime(ANIMATION_WAIT_TIME);
-                currentState = STATES.WAIT_FOR_NEW_GAME;
+                currentState = States.WAIT_FOR_NEW_GAME;
                 break;
             case WAIT_FOR_NEW_ROUND:
-                currentState = nextStateForWaitState(STATES.INITIATE);
+                currentState = nextStateForWaitState(States.INITIATE);
                 break;
             case WAIT_FOR_NEW_GAME:
-                currentState = nextStateForWaitState(STATES.END_GAME);
+                currentState = nextStateForWaitState(States.END_GAME);
                 break;
             case END_GAME:
                 handController.loose();
                 setTransitionTime(ANIMATION_WAIT_TIME);
-                currentState = STATES.END_GAME_WAIT;
+                currentState = States.END_GAME_WAIT;
                 break;
             case END_GAME_WAIT:
-                currentState = nextStateForWaitState(STATES.GAME_OVER);
+                currentState = nextStateForWaitState(States.GAME_OVER);
                 break;
             case GAME_OVER:
                 lightRingControl.setRPSScore(0, 0);
                 if (gameStateListener != null) {
                     gameStateListener.gameFinished();
                 }
-                currentState = STATES.IDLE;
+                currentState = States.IDLE;
                 break;
         }
     }
@@ -217,25 +218,25 @@ public class RockPaperScissors implements Game {
         rpsThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                soundController.playSound(SoundController.SOUNDS.RPS_BING);
+                soundController.playSound(SoundController.Sounds.RPS_BING);
                 sleep(afterSoundTime);
                 handController.rpsDownCount();
                 sleep(pauseTime);
                 handController.moveToRPSReady();
                 sleep(sleepTime);
-                soundController.playSound(SoundController.SOUNDS.RPS_BING);
+                soundController.playSound(SoundController.Sounds.RPS_BING);
                 sleep(afterSoundTime);
                 handController.rpsDownCount();
                 sleep(pauseTime);
                 handController.moveToRPSReady();
                 sleep(sleepTime);
-                soundController.playSound(SoundController.SOUNDS.RPS_BING);
+                soundController.playSound(SoundController.Sounds.RPS_BING);
                 sleep(afterSoundTime);
                 handController.rpsDownCount();
                 sleep(pauseTime);
                 handController.moveToRPSReady();
                 sleep(sleepTime);
-                soundController.playSound(SoundController.SOUNDS.RPS_BONG);
+                soundController.playSound(SoundController.Sounds.RPS_BONG);
                 sleep(afterSoundTime);
                 handController.handleRPSAction(thrownAction);
 
@@ -326,7 +327,7 @@ public class RockPaperScissors implements Game {
         monitoredActions = new HashMap();
     }
 
-    private STATES nextStateForWaitState(STATES nextState) {
+    private States nextStateForWaitState(States nextState) {
         if (System.currentTimeMillis() >= timeToTransition) {
             return nextState;
         } else {
