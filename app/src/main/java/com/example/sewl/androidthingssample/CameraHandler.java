@@ -70,7 +70,7 @@ public class CameraHandler {
         try {
             camIds = manager.getCameraIdList();
         } catch (CameraAccessException e) {
-            Log.d(TAG, "Cam access exception getting IDs", e);
+            Log.e(TAG, "Cam access exception getting IDs", e);
         }
         if (camIds.length < 1) {
             Log.d(TAG, "No cameras found");
@@ -95,7 +95,7 @@ public class CameraHandler {
         try {
             manager.openCamera(id, mStateCallback, backgroundHandler);
         } catch (CameraAccessException cae) {
-            Log.d(TAG, "Camera access exception", cae);
+            Log.e(TAG, "Camera access exception", cae);
         }
     }
     /**
@@ -118,7 +118,7 @@ public class CameraHandler {
         }
         @Override
         public void onError(@NonNull CameraDevice cameraDevice, int i) {
-            Log.d(TAG, "Camera device error, closing.");
+            Log.e(TAG, "Camera device error, closing.");
             closeCaptureSession();
             cameraDevice.close();
         }
@@ -141,7 +141,7 @@ public class CameraHandler {
                     sessionCallback,
                     null);
         } catch (CameraAccessException cae) {
-            Log.d(TAG, "access exception while preparing pic", cae);
+            Log.e(TAG, "access exception while preparing pic", cae);
         }
     }
 
@@ -158,7 +158,7 @@ public class CameraHandler {
                 }
                 @Override
                 public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    Log.w(TAG, "Failed to configure camera");
+                    Log.e(TAG, "Failed to configure camera");
                 }
             };
 
@@ -178,7 +178,7 @@ public class CameraHandler {
                 }
             }, null);
         } catch (CameraAccessException cae) {
-            Log.d(TAG, "camera capture exception");
+            Log.e(TAG, "camera capture exception");
         }
     }
 

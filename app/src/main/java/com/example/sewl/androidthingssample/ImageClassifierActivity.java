@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import com.google.android.things.contrib.driver.button.Button;
@@ -21,6 +22,8 @@ import java.util.Map;
 public class ImageClassifierActivity extends Activity
                                      implements ImageReader.OnImageAvailableListener,
                                                 CameraHandler.CameraReadyListener {
+
+    private static final String TAG = ImageClassifierActivity.class.getSimpleName();
 
     private Map<String, TensorFlowImageClassifier> classifiers = new HashMap();
 
@@ -153,7 +156,9 @@ public class ImageClassifierActivity extends Activity
             resetButton = new ButtonInputDriver(BoardDefaults.RESET_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_E);
             buttonInputDriver.register();
             resetButton.register();
-        } catch (IOException e) {}
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to setup configuration buttons: " + e);
+        }
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {
@@ -221,7 +226,9 @@ public class ImageClassifierActivity extends Activity
         super.onDestroy();
         try {
             if (backgroundThread != null) backgroundThread.quit();
-        } catch (Throwable t) { }
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to quit the background thread: " + t);
+        }
 
         handController.shutdown();
         backgroundThread = null;
@@ -229,13 +236,17 @@ public class ImageClassifierActivity extends Activity
 
         try {
             if (cameraHandler != null) cameraHandler.shutDown();
-        } catch (Throwable t) { }
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to quit the camera thread: " + t);
+        }
         try {
             if (rpsTensorFlowClassifier != null) rpsTensorFlowClassifier.destroyClassifier();
             if (spidermanOkClassifier != null) spidermanOkClassifier.destroyClassifier();
             if (loserThreeClassifier != null) loserThreeClassifier.destroyClassifier();
             if (oneRockClassifier != null) oneRockClassifier.destroyClassifier();
-        } catch (Throwable t) { }
+        } catch (Throwable t) {
+            Log.e(TAG, "Failed to quit the classifier threads: " + t);
+        }
     }
 
     @Override
