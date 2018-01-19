@@ -134,20 +134,9 @@ public class ImageClassifierActivity extends Activity
 
     private void runHandInit() {
         handController.loose();
-        Handler handInitHandler = new Handler();
-        handInitHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handController.moveToRPSReady();
-            }
-        }, HAND_INIT_RPS_READY_TIME);
-        handInitHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handController.loose();
-            }
-        }, HAND_INIT_MOVE_TO_LOOSE_TIME);
-        handInitHandler.postDelayed(new Runnable() {
+        handController.moveToRPSReady(HAND_INIT_RPS_READY_TIME);
+        handController.loose(HAND_INIT_MOVE_TO_LOOSE_TIME);
+        new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 currentState = States.RUN;
@@ -202,12 +191,7 @@ public class ImageClassifierActivity extends Activity
 
     private void runFlexForearmTest() {
         handController.forearm.flex();
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                handController.forearm.loose();
-            }
-        }, FOREARM_TEST_MOVEMENT_DELAY);
+        handController.loose(FOREARM_TEST_MOVEMENT_DELAY);
     }
 
     @Override

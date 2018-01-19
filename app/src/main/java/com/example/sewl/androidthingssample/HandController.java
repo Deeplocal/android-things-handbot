@@ -1,5 +1,7 @@
 package com.example.sewl.androidthingssample;
 
+import android.os.Handler;
+
 /**
  * Created by mderrick on 10/10/17.
  */
@@ -216,6 +218,15 @@ public class HandController {
         wrist.parallelToGround();
     }
 
+    public void moveToRPSReady(long delay) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                moveToRPSReady();
+            }
+        }, delay);
+    }
+
     public void moveToRPSReady() {
         indexFinger.flex();
         middleFinger.flex();
@@ -224,6 +235,15 @@ public class HandController {
         thumb.flex();
         forearm.loose();
         wrist.perpendicularToGround();
+    }
+
+    public void loose(long delay) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                loose();
+            }
+        }, delay);
     }
 
     public void loose() {
