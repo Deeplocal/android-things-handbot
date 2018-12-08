@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 26
-    buildToolsVersion "26.0.2"
+    buildToolsVersion '28.0.3'
 
 
     defaultConfig {
@@ -21,8 +21,22 @@ android {
         }
     }
 
+    buildscript {
+        repositories {
+            google()
+            jcenter()
+        }
+    }
+
 }
 
 dependencies {
-    provided 'com.google.android.things:androidthings:0.4.1-devpreview'
+    compileOnly 'com.google.android.things:androidthings:0.4.1-devpreview'
+}
+
+allprojects {
+    repositories {
+        google()
+        jcenter()
+    }
 }
