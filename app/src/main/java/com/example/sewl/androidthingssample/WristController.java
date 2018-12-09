@@ -10,8 +10,8 @@ import com.sewl.deeplocal.drivers.MultiChannelServoDriver;
 
 public class WristController {
 
-    public static final int FLEXED_ANGLE             = 0;
-    public static final int LOOSE_ANGLE              = 112;
+    public static final int FLEXED_ANGLE             = -70;
+    public static final int LOOSE_ANGLE              = 70;
     public static final int SERVO_OFF_VALUE          = 0;
     public static final int SERVO_MAX_DEGREES        = 180;
     public static final float MAX_RELAX_TIME_MILLIS  = 500.0f;

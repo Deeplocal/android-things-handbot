@@ -90,7 +90,9 @@ public class RockPaperScissors implements Game {
 
     @Override
     public void start() {
-        lightRingControl.runSwirl(1, Color.BLUE);
+        if (lightRingControl!=null) {
+            lightRingControl.runSwirl(1, Color.BLUE);
+        }
         handController.moveToRPSReady();
         soundController.playSound(SoundController.Sounds.START_GAME);
         new Handler().postDelayed(new Runnable() {
@@ -262,8 +264,8 @@ public class RockPaperScissors implements Game {
     }
 
     private boolean gameOver() {
-        return roundLosses == 2 || roundWins == 2 ||
-                (roundWins + roundLosses) >= 3;
+        return roundLosses == 3 || roundWins == 3 ||
+                (roundWins + roundLosses) >= 5;
     }
 
     private GAME_RESULTS getGameResults(String seenAction) {

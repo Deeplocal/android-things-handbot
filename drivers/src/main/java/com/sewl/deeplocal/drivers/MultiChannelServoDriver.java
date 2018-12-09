@@ -4,8 +4,9 @@ import android.os.Handler;
 import android.util.Log;
 
 import com.google.android.things.pio.I2cDevice;
-import com.google.android.things.pio.PeripheralManagerService;
+import com.google.android.things.pio.PeripheralManager;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.List;
 
@@ -15,11 +16,12 @@ import static android.content.ContentValues.TAG;
  * Created by mderrick on 10/10/17.
  */
 
-public class MultiChannelServoDriver {
+public class MultiChannelServoDriver implements Closeable {
 
     private static final boolean ENABLE_SERVOS  = true;
     private static final byte I2C_ADDRESS       = 0x41;
     private static final byte PCA9685_MODE1     = 0x00;
+    private static final byte PCA9685_MODE2     = 0x01;
     private static final byte RESET             = 0x00;
     private static final int PCA9685_PRESCALE   = 0xFE;
     private static final byte LED0_ON_L         = 0x06;
@@ -27,6 +29,9 @@ public class MultiChannelServoDriver {
     private static final byte LED0_OFF_L        = 0x08;
     private static final byte LED0_OFF_H        = 0x09;
     private static final int SERVO_MAX_ANGLE    = 180;
+    private static final int OUTDRV = 0x04;
+    private static final int ALLCALL = 0x01;
+    private static final int SLEEP = 0x10;
 
     // HS-5085 Servos
     // This will change to accommodate different servo pwm pulse widths
@@ -35,15 +40,30 @@ public class MultiChannelServoDriver {
 
     private I2cDevice i2cDevice;
 
-    public void init() {
-        PeripheralManagerService manager = new PeripheralManagerService();
-        final List<String> deviceList = manager.getI2cBusList();
+    public void init() throws Exception {
+        PeripheralManager manager = PeripheralManager.getInstance();
+        List<String> deviceList = manager.getI2cBusList();
+
         if (deviceList.isEmpty()) {
             Log.e(TAG, "No I2C bus available on this device.");
         } else {
-            openConnection(deviceList.get(0));
-            writeReg(PCA9685_MODE1, RESET);
-            setPWMFrequency(50.0d);
+            try {
+                openConnection(deviceList.get(0));
+                setPWMFrequency(0.0);
+                writeReg(PCA9685_MODE2, (byte) OUTDRV);
+                writeReg(PCA9685_MODE1, (byte) ALLCALL);
+                Thread.sleep(5); // #wait for oscillator
+                byte mode1 = i2cDevice.readRegByte(PCA9685_MODE1);
+                mode1 = (byte) (mode1 & ~SLEEP); //#wake up (reset sleep)
+                i2cDevice.writeRegByte(PCA9685_MODE1, mode1);
+                Thread.sleep(5); //#wait for oscillator
+                writeReg(PCA9685_MODE1, RESET);
+                setPWMFrequency(50.0d);
+            } catch (Exception e) {
+                Log.d(TAG, "PWM Error " + e.getMessage());
+                e.printStackTrace(); // NOSONAR
+                throw e;
+            }
         }
     }
 
@@ -105,8 +125,8 @@ public class MultiChannelServoDriver {
     }
 
     private void openConnection(String busName) {
-        try {
-            PeripheralManagerService manager = new PeripheralManagerService();
+       try {
+            PeripheralManager manager = PeripheralManager.getInstance();
             i2cDevice = manager.openI2cDevice(busName, I2C_ADDRESS);
         } catch (IOException e) {
             Log.w(TAG, "Unable to access I2C device", e);

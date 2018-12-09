@@ -10,10 +10,10 @@ import com.sewl.deeplocal.drivers.MultiChannelServoDriver;
 
 public class ForearmController {
 
-    public static int DEFAULT_MOTOR_SYNC_OFFSET     = 40;
-    private static int FLEXED_ANGLE                 = 20;
-    private static int MINOR_FLEXED_ANGLE           = 10;
-    private static int LOOSE_ANGLE                  = -10;
+    public static int DEFAULT_MOTOR_SYNC_OFFSET     = 9;
+    private static int FLEXED_ANGLE                 = 45;
+    private static int MINOR_FLEXED_ANGLE           = 22;
+    private static int LOOSE_ANGLE                  = 8;
     public static final int SERVO_MAX_DEGREES       = 180;
     public static final long MAX_RELAX_TIME_MILLIS  = 1000;
 
@@ -45,6 +45,7 @@ public class ForearmController {
     }
 
     public void loose() {
+        setAngle(LOOSE_ANGLE+1);
         setAngle(LOOSE_ANGLE);
     }
 

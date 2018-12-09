@@ -58,15 +58,19 @@ public class ImageClassificationThread extends Thread {
     }
 
     public void classifyImage(Bitmap bitmap) {
-        Log.i(TAG, "Took: " + (System.currentTimeMillis() - currentTime));
+        //Log.i(TAG, "Took: " + (System.currentTimeMillis() - currentTime));
         currentTime = System.currentTimeMillis();
 
         TensorFlowImageClassifier classifier = classifiers.get(standbyController.getClassifierKey());
         if (classifier != null) {
             final List<Classifier.Recognition> results = classifier.doRecognize(bitmap);
+
             if (results.size() > 0) {
+                for (Classifier.Recognition result : results) {
+                    Log.i(TAG,result.getTitle()+" "+result.getConfidence());
+                }
                 standbyController.run(results.get(0).getTitle(), results);
-                Log.i(TAG, "Results: " + results);
+                //Log.i(TAG, "Results: " + results);
             }
             classifyingImage = false;
         }

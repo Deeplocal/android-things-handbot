@@ -25,8 +25,19 @@ public class SoundController {
 
     private Context context;
 
+    private MediaPlayer myMedia=null;
+
+
     public SoundController(Context context) {
         this.context = context;
+    }
+
+    public boolean isBusy() {
+        if (myMedia!=null) {
+            return myMedia.isPlaying();
+        } else {
+            return false;
+        }
     }
 
     public void playSound(Sounds sound) {
@@ -71,7 +82,9 @@ public class SoundController {
 
     private void play(int sound) {
         MediaPlayer mediaPlayer = MediaPlayer.create(context, sound);
-        mediaPlayer.setVolume(BoardDefaults.DEFAULT_VOLUME, BoardDefaults.DEFAULT_VOLUME);
+        myMedia=mediaPlayer;
+        mediaPlayer.setVolume(100, 100);
+        //mediaPlayer.setVolume(BoardDefaults.DEFAULT_VOLUME, BoardDefaults.DEFAULT_VOLUME);
         mediaPlayer.setLooping(false);
         mediaPlayer.start();
     }

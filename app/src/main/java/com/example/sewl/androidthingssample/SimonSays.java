@@ -110,7 +110,9 @@ public class SimonSays implements Game {
             case CHOOSE_SIGNS:
                 showedSigns = 0;
                 generateSigns();
-                lightRingControl.runScorePulse(2, signsToShow.size(), 0);
+                if (lightRingControl!=null) {
+                    lightRingControl.runScorePulse(2, signsToShow.size(), 0);
+                }
                 soundController.playSound(SoundController.Sounds.MIRROR);
                 currentState = States.CHOOSE_SIGNS_WAIT;
                 setTransitionTime(CHOOSE_SIGNS_WAIT_DELAY);
@@ -123,7 +125,9 @@ public class SimonSays implements Game {
                 String sign = signsToShow.remove(0);
                 Log.i(TAG, "sign: " + sign);
                 showedSigns++;
-                lightRingControl.showMatchingLights(showedSigns, 0);
+                if (lightRingControl!=null) {
+                    lightRingControl.showMatchingLights(showedSigns, 0);
+                }
                 soundController.playSignSound(sign);
                 handController.handleSimonSaysAction(sign);
                 currentState = States.SHOW_SIGN_WAIT;
@@ -142,7 +146,9 @@ public class SimonSays implements Game {
             case DETERMINE_IF_MORE_SIGNS_TO_SHOW:
                 currentState = signsToShow.size() > 0 ? States.SHOW_SIGN : States.PAUSE_BEFORE_MONITORING;
                 if (currentState == States.PAUSE_BEFORE_MONITORING) {
-                    lightRingControl.runScorePulse(2, signsToMatch.size(), 0);
+                    if (lightRingControl!=null) {
+                        lightRingControl.runScorePulse(2, signsToMatch.size(), 0);
+                    }
                     soundController.playSound(SoundController.Sounds.MIRROR);
                     setTransitionTime(MONITOR_FOR_SIGN_WAIT_TIME);
                 }
@@ -173,7 +179,9 @@ public class SimonSays implements Game {
                     } else {
                         currentState = States.PREPARE_FOR_NEXT_ROUND;
                     }
-                    lightRingControl.showMatchingLights(correctSigns, 0);
+                    if (lightRingControl!=null) {
+                        lightRingControl.showMatchingLights(correctSigns, 0);
+                    }
                     actionToLookup = null;
                 } else {
                     currentState = States.PLAY_INCORRECT_SIGN;
@@ -184,7 +192,9 @@ public class SimonSays implements Game {
                 currentState = States.MONITOR_FOR_SIGN;
                 break;
             case PLAY_INCORRECT_SIGN:
-                lightRingControl.showMatchingLights(correctSigns, 1);
+                if (lightRingControl!=null) {
+                    lightRingControl.showMatchingLights(correctSigns, 1);
+                }
                 currentState = States.LOSS;
                 break;
             case PREPARE_FOR_NEXT_ROUND:
@@ -197,7 +207,9 @@ public class SimonSays implements Game {
                 }
                 break;
             case WIN:
-                lightRingControl.runPulse(2, Color.GREEN);
+                if (lightRingControl!=null) {
+                    lightRingControl.runPulse(2, Color.GREEN);
+                }
                 soundController.playSound(SoundController.Sounds.WIN);
                 setTransitionTime(END_GAME_WAIT_TIME);
                 handController.thumbsUp();
@@ -207,7 +219,9 @@ public class SimonSays implements Game {
                 currentState = nextStateForWaitState(States.GAME_OVER);
                 break;
             case LOSS:
-                lightRingControl.runScorePulse(2, correctSigns, 1);
+                if (lightRingControl!=null) {
+                    lightRingControl.runScorePulse(2, correctSigns, 1);
+                }
                 setTransitionTime(END_GAME_WAIT_TIME);
                 soundController.playSound(SoundController.Sounds.LOSS);
                 currentState = States.LOSS_WAIT;
@@ -253,7 +267,9 @@ public class SimonSays implements Game {
 
     @Override
     public void start() {
-        lightRingControl.runSwirl(1, Color.GREEN);
+        if (lightRingControl!=null) {
+            lightRingControl.runSwirl(1, Color.GREEN);
+        }
         handController.moveToSimonSaysReady();
         soundController.playSound(SoundController.Sounds.START_GAME);
         new Handler().postDelayed(new Runnable() {

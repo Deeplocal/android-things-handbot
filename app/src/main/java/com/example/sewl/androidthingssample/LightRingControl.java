@@ -3,7 +3,7 @@ package com.example.sewl.androidthingssample;
 import android.graphics.Color;
 import android.util.Log;
 
-import com.google.android.things.contrib.driver.apa102.Apa102;
+import com.google.android.things.contrib.driver.apa102.*;
 
 import java.io.IOException;
 
@@ -16,7 +16,7 @@ public class LightRingControl {
     private static final String TAG = LightRingControl.class.getSimpleName();
 
     public static final long FAST_PULSE_ANIMATION_STEP_MILLIS = 4;
-    private static final int NUMBER_OF_LEDS                     = 24;
+    private static final int NUMBER_OF_LEDS                     = 5;
     public static final int LEDS_PER_RPS_SCORE_MARK             = NUMBER_OF_LEDS / 3;
     public static final int LEDS_PER_MATCHING_SCORE_MARK        = NUMBER_OF_LEDS / 8;
     private static final int PULSE_DELAY                        = 10;
@@ -35,6 +35,8 @@ public class LightRingControl {
     public static final int LED_RING_START_OFFSET_INDEX         = Math.round(NUMBER_OF_LEDS * LED_RING_START_OFFSET_PERCENTAGE);
     private float[] GREEN_HSV                                   = new float[3];
     private float[] RED_HSV                                     = new float[3];
+
+    private boolean flag_busy = false;
 
     private Thread ledThread;
 
@@ -56,6 +58,10 @@ public class LightRingControl {
         } catch (IOException e) { }
     }
 
+    public boolean isBusy() {
+        return flag_busy;
+    }
+
     public void runSwirl(int pulsesToRun, final int color, final float totalPulseSeconds) {
         final float[] hsv = new float[3];
         final long totalMillis = Math.round((totalPulseSeconds / (float) (NUMBER_OF_LED_STEPS)) * MILLIS_PER_SECOND);
@@ -65,10 +71,12 @@ public class LightRingControl {
             @Override
             public void run() {
                 int numberOfRuns = 0;
+                flag_busy=true;
                 while(numberOfRuns < totalPulsesToRun) {
                     swirl(hsv[0], totalMillis);
                     numberOfRuns++;
                 }
+                flag_busy=false;
                 stopLedThread();
             };
         });
@@ -133,11 +141,13 @@ public class LightRingControl {
             @Override
             public void run() {
                 int numberOfRuns = 0;
+                flag_busy=true;
                 while(numberOfRuns < totalPulsesToRun) {
                     illuminate(hsv[0], PULSE_DELAY);
                     deluminate(hsv[0], PULSE_DELAY);
                     numberOfRuns++;
                 }
+                flag_busy=false;
                 stopLedThread();
             };
         });
@@ -153,11 +163,13 @@ public class LightRingControl {
             @Override
             public void run() {
                 int numberOfRuns = 0;
+                flag_busy=true;
                 while(numberOfRuns < totalPulsesToRun) {
                     illuminate(hsv[0], FLASH_DELAY);
                     deluminate(hsv[0], FLASH_DELAY);
                     numberOfRuns++;
                 }
+                flag_busy=false;
                 stopLedThread();
             };
         });
@@ -172,6 +184,7 @@ public class LightRingControl {
             @Override
             public void run() {
                 int numberOfRuns = 0;
+                flag_busy=true;
                 while(numberOfRuns < totalPulsesToRun) {
                     int[] colors = new int[NUMBER_OF_LEDS];
                     for (int i = 0; i < MAX_SCORE_DEGREES_OF_HSV_VALUE; i+=2) {
@@ -183,6 +196,7 @@ public class LightRingControl {
                     }
                     numberOfRuns++;
                 }
+                flag_busy=false;
                 stopLedThread();
             }
         });
@@ -261,6 +275,8 @@ public class LightRingControl {
         for (int i = 0; i < NUMBER_OF_LEDS; i++) {
             colors[i] = color;
         }
+        while(flag_busy){};
+        sleep(100);
         writeToLEDStrip(colors);
     }
 }

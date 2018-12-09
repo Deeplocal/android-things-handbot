@@ -1,8 +1,12 @@
 package com.example.sewl.androidthingssample;
 
 import android.os.Handler;
+import android.util.Log;
 
 import com.sewl.deeplocal.drivers.MultiChannelServoDriver;
+import java.io.IOException;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Created by mderrick on 10/10/17.
@@ -26,19 +30,21 @@ public class HandController {
 
     public WristController wrist;
 
+
     public void init(SettingsRepository settingsRepository) {
         pwmDriver = new MultiChannelServoDriver();
         pwmDriver.init();
 
         thumb = new ThumbController(BoardDefaults.HandPinout.THUMB, pwmDriver, true);
-        indexFinger = new FingerController(BoardDefaults.HandPinout.INDEX, pwmDriver, false, 0);
-        middleFinger = new FingerController(BoardDefaults.HandPinout.MIDDLE, pwmDriver, false, 0);
-        ringFinger = new FingerController(BoardDefaults.HandPinout.RING, pwmDriver, false, 0);
-        pinky = new FingerController(BoardDefaults.HandPinout.PINKY, pwmDriver, false, 0);
+        indexFinger = new FingerController(BoardDefaults.HandPinout.INDEX, pwmDriver, false, -30);
+        middleFinger = new FingerController(BoardDefaults.HandPinout.MIDDLE, pwmDriver, false, -30);
+        ringFinger = new FingerController(BoardDefaults.HandPinout.RING, pwmDriver, false, -30);
+        pinky = new FingerController(BoardDefaults.HandPinout.PINKY, pwmDriver, false, -30);
 
         wrist = new WristController(BoardDefaults.HandPinout.WRIST, pwmDriver);
         forearm = new ForearmController(BoardDefaults.HandPinout.FOREARM_ON_USER_RIGHT, BoardDefaults.HandPinout.FOREARM_ON_USER_LEFT, pwmDriver, settingsRepository);
     }
+
 
     public void handleRPSAction(String action) {
         switch (action) {
@@ -108,6 +114,9 @@ public class HandController {
         pinky.loose();
         forearm.loose();
         wrist.parallelToGround();
+
+        sleep(500);
+
     }
 
     private void spiderman() {
@@ -118,6 +127,7 @@ public class HandController {
         pinky.loose();
         forearm.loose();
         wrist.parallelToGround();
+        sleep(500);
     }
 
     private void loser() {
@@ -128,6 +138,7 @@ public class HandController {
         pinky.flex();
         forearm.loose();
         wrist.parallelToGround();
+        sleep(500);
     }
 
     private void three() {
@@ -138,6 +149,7 @@ public class HandController {
         pinky.flex();
         forearm.loose();
         wrist.parallelToGround();
+        sleep(500);
     }
 
     public void scissors() {
@@ -148,6 +160,7 @@ public class HandController {
         pinky.flex();
         forearm.flex();
         wrist.perpendicularToGround();
+        sleep(500);
     }
 
     public void mirrorScissors() {
@@ -158,6 +171,7 @@ public class HandController {
         thumb.flex();
         forearm.loose();
         wrist.parallelToGround();
+        sleep(500);
     }
 
     public void rock() {
@@ -168,6 +182,7 @@ public class HandController {
         thumb.flex();
         forearm.flex();
         wrist.perpendicularToGround();
+        sleep(500);
     }
 
     public void rpsDownCount() {
@@ -178,6 +193,7 @@ public class HandController {
         thumb.flex();
         forearm.minorFlex();
         wrist.perpendicularToGround();
+        sleep(500);
     }
 
     public void mirrorRock() {
@@ -188,6 +204,7 @@ public class HandController {
         thumb.flex();
         forearm.loose();
         wrist.parallelToGround();
+        sleep(500);
     }
 
     public void paper() {
@@ -198,6 +215,7 @@ public class HandController {
         thumb.loose();
         forearm.flex();
         wrist.parallelToGround();
+        sleep(500);
     }
 
     public void mirrorPaper() {
@@ -208,6 +226,7 @@ public class HandController {
         thumb.loose();
         forearm.loose();
         wrist.parallelToGround();
+        sleep(500);
     }
 
     public void ok() {
@@ -218,6 +237,7 @@ public class HandController {
         thumb.flex();
         forearm.loose();
         wrist.parallelToGround();
+        sleep(500);
     }
 
     public void moveToRPSReady(long delay) {
@@ -237,6 +257,7 @@ public class HandController {
         thumb.flex();
         forearm.loose();
         wrist.perpendicularToGround();
+        sleep(500);
     }
 
     public void loose(long delay) {
@@ -256,6 +277,7 @@ public class HandController {
         thumb.loose();
         wrist.parallelToGround();
         forearm.loose();
+        sleep(500);
     }
 
     public void one() {
@@ -266,6 +288,7 @@ public class HandController {
         thumb.flex();
         wrist.parallelToGround();
         forearm.loose();
+        sleep(500);
     }
 
     public void moveToSimonSaysReady() {
@@ -280,6 +303,15 @@ public class HandController {
         thumb.loose();
         wrist.perpendicularToGround();
         forearm.flex();
+        sleep(500);
+    }
+
+    private void sleep(long delay) {
+        try {
+            Thread.sleep(delay);
+        } catch (InterruptedException e) {
+            Log.e(TAG, "Failed to sleep", e);
+        }
     }
 
     public void shutdown() {

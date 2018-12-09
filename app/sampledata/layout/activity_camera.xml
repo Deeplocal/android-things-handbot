@@ -21,15 +21,17 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="640dip"
-        android:layout_height="480dip"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginBottom="0dp"/>
+        android:src="@mipmap/shield" />
 
     <LinearLayout
         android:id="@+id/results"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/results"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
         android:background="@color/colorPrimary"
         android:orientation="vertical">
 
@@ -37,8 +39,8 @@
             android:id="@+id/result1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@android:color/black"
             android:text="@string/help_message"
+            android:textColor="@android:color/black"
             tools:text="dog: 0.343535" />
 
         <TextView
@@ -55,4 +57,5 @@
             android:textColor="@android:color/black"
             tools:text="cat: 0.21423423" />
     </LinearLayout>
+
 </RelativeLayout>

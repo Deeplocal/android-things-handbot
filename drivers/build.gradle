@@ -1,13 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 27
 
 
     defaultConfig {
-        minSdkVersion 24
-        targetSdkVersion 26
+        minSdkVersion 27
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -21,22 +20,8 @@ android {
         }
     }
 
-    buildscript {
-        repositories {
-            google()
-            jcenter()
-        }
-    }
-
 }
 
 dependencies {
-    compileOnly 'com.google.android.things:androidthings:0.4.1-devpreview'
-}
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-    }
+    compileOnly 'com.google.android.things:androidthings:1.0'
 }

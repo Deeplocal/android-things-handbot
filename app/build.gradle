@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '28.0.3'
+    compileSdkVersion 27
+    //buildToolsVersion '27.0.3'
     defaultConfig {
         applicationId "com.example.sewl.androidthingssample"
-        minSdkVersion 24
-        targetSdkVersion 26
+        minSdkVersion 27
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -18,31 +18,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
-    buildscript {
-        repositories {
-            google()
-            jcenter()
-        }
-    }
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'org.tensorflow:tensorflow-android:1.2.0'
-    implementation 'com.android.support:appcompat-v7:26.+'
+    implementation 'com.android.support:appcompat-v7:27.+'
+    implementation 'com.google.android.things.contrib:driver-apa102:1.0'
     implementation 'com.google.android.things.contrib:driver-button:0.3'
     implementation 'com.google.android.things.contrib:driver-pwmservo:0.3'
     implementation 'com.google.android.things.contrib:driver-apa102:0.5'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    compileOnly 'com.google.android.things:androidthings:0.4.1-devpreview'
-    implementation group: 'com.google.guava', name: 'guava', version: '11.0.2'
+    compileOnly 'com.google.android.things:androidthings:1.0'
+    implementation 'com.google.guava:guava:11.0.2'
     implementation project(path: ':drivers')
-}
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-    }
 }

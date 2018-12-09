@@ -15,8 +15,8 @@ import java.util.Map;
 public class StandbyController implements GameStateListener {
 
     private static final Integer SAMPLES_PER_ACTION     = 2;
-    private static final Integer SAMPLES_TO_START_GAME  = 8;
-    public static final float MINIMUM_MIRROR_CONFIDENCE = 0.92f;
+    private static final Integer SAMPLES_TO_START_GAME  = 4;
+    public static final float MINIMUM_MIRROR_CONFIDENCE = 0.90f;
 
     private HandController handController;
 
@@ -26,7 +26,7 @@ public class StandbyController implements GameStateListener {
 
     private States currentState = States.IDLE;
 
-    private String lastMirroredAction;
+    private String lastMirroredAction = "##";
 
     private int consecutiveMirroredActions;
 
@@ -54,7 +54,9 @@ public class StandbyController implements GameStateListener {
         this.lightRingControl = lightRingControl;
         this.soundController = soundController;
         this.currentState = States.MIRROR;
-        lightRingControl.runPulse(1, Color.BLUE);
+        if (lightRingControl!=null) {
+            lightRingControl.runPulse(1, Color.BLUE);
+        }
     }
 
     public void run(String action, List<Classifier.Recognition> results) {
@@ -72,11 +74,12 @@ public class StandbyController implements GameStateListener {
                 runBackOffAnimation();
             } else if (consecutiveNegatives >= 50) {
                 consecutiveNegatives = 0;
-                handController.loose();
+                handController.one();
             } else if (shouldMirror(results)) {
                 clearLoggedActions();
                 runMirror(action);
             }
+
         } else if (currentState == States.ROCK_PAPER_SCISSORS) {
             runGame(action, results);
         } else if (currentState == States.MATCHING) {
@@ -94,7 +97,9 @@ public class StandbyController implements GameStateListener {
     }
 
     private void runBackOffAnimation() {
-        lightRingControl.flash(1, Color.RED);
+        if (lightRingControl!=null) {
+            lightRingControl.flash(1, Color.RED);
+        }
         soundController.playSound(SoundController.Sounds.TIE);
     }
 
@@ -134,6 +139,7 @@ public class StandbyController implements GameStateListener {
     }
 
     private void startGame() {
+
         if (Signs.ROCK.equals(lastMirroredAction)) {
             currentState = States.ROCK_PAPER_SCISSORS;
             currentGame = new RockPaperScissors(handController, this, lightRingControl, soundController);
@@ -159,13 +165,15 @@ public class StandbyController implements GameStateListener {
     }
 
     private void runMirror(String action) {
-        if (action.equals(lastMirroredAction)) {
-            consecutiveMirroredActions++;
-        } else {
-            consecutiveMirroredActions = 0;
+        if (!(action.equals(Signs.NEGATIVE)) ||(action.equals(Signs.COVERED))){
+            if (action.equals(lastMirroredAction)) {
+                consecutiveMirroredActions++;
+            } else {
+                consecutiveMirroredActions = 0;
+            }
+            lastMirroredAction = action;
+            handController.runMirror(action);
         }
-        lastMirroredAction = action;
-        handController.runMirror(action);
     }
 
     private void runGame(String action, List<Classifier.Recognition> results) {

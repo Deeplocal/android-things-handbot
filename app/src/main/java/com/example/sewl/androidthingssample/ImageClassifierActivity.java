@@ -12,8 +12,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
 
-import com.google.android.things.contrib.driver.button.Button;
-import com.google.android.things.contrib.driver.button.ButtonInputDriver;
+import com.google.android.things.device.TimeManager;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -46,7 +45,6 @@ public class ImageClassifierActivity extends Activity
 
     private SettingsRepository settingsRepository;
 
-    private ButtonInputDriver buttonInputDriver;
 
     private ImagePreprocessor imagePreprocessor;
 
@@ -59,8 +57,6 @@ public class ImageClassifierActivity extends Activity
     private HandlerThread backgroundThread;
 
     private SoundController soundController;
-
-    private ButtonInputDriver resetButton;
 
     private HandController handController;
 
@@ -80,29 +76,49 @@ public class ImageClassifierActivity extends Activity
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_camera);
+        //setContentView(R.layout.activity_camera);
 
         init();
     }
 
     private void init() {
+        wait(200);
         settingsRepository = new SettingsRepository(this);
+        handController = new HandController();
+        handController.init(settingsRepository);
+        wait(200);
+        handController.indexFinger.flex();
+        wait(200);
+        handController.indexFinger.loose();
+        wait(200);
+        handController.wrist.perpendicularToGround();
+        wait(200);
+        handController.wrist.parallelToGround();
+        wait(200);
+        handController.forearm.minorFlex();
+        wait(200);
+        handController.forearm.flex();
+        wait(200);
+        handController.forearm.loose();
+        wait(200);
+
         standbyController = new StandbyController();
         soundController = new SoundController(this);
         lightRingControl = new LightRingControl();
-        lightRingControl.init();
-        imagePreprocessor = new ImagePreprocessor();
-        handController = new HandController();
-        handController.init(settingsRepository);
 
+        lightRingControl.init();
+
+
+        imagePreprocessor = new ImagePreprocessor();
         // Create Tensorflow classifiers
-        rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.RPS_MODEL_FILE, TensorflowImageOperations.RPS_LABELS_FILE);
-        spidermanOkClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.SPIDERMAN_OK_MODEL, TensorflowImageOperations.SPIDERMAN_OK_LABELS);
-        loserThreeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.LOSER_THREE_MODEL, TensorflowImageOperations.LOSER_THREE_LABELS);
-        oneRockClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.ONE_ROCK_MODEL, TensorflowImageOperations.ONE_ROCK_LABELS);
-        mirrorClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.MIRROR_MODEL, TensorflowImageOperations.MIRROR_LABELS);
+       rpsTensorFlowClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.RPS_MODEL_FILE, TensorflowImageOperations.RPS_LABELS_FILE);
+       spidermanOkClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.SPIDERMAN_OK_MODEL, TensorflowImageOperations.SPIDERMAN_OK_LABELS);
+       loserThreeClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.LOSER_THREE_MODEL, TensorflowImageOperations.LOSER_THREE_LABELS);
+       oneRockClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.ONE_ROCK_MODEL, TensorflowImageOperations.ONE_ROCK_LABELS);
+       mirrorClassifier = new TensorFlowImageClassifier(ImageClassifierActivity.this, TensorflowImageOperations.MIRROR_MODEL, TensorflowImageOperations.MIRROR_LABELS);
 
         standbyController.init(handController, lightRingControl, soundController);
+
 
         // Use a different specific classifier for actions that don't play well together
         classifiers.put(Signs.SPIDERMAN, spidermanOkClassifier);
@@ -122,14 +138,29 @@ public class ImageClassifierActivity extends Activity
         backgroundThread.start();
         backgroundHandler = new Handler(backgroundThread.getLooper());
         backgroundHandler.post(mInitializeOnBackground);
+        handController = new HandController();
+        handController.init(settingsRepository);
+
+        if (handController!=null) {
+            runHandInit();
+        }
+
+
 
         imageClassificationThread = new ImageClassificationThread(standbyController, classifiers, lightRingControl);
         imageClassificationThread.start();
 
-        lightRingControl.setColor(Color.BLACK);
 
-        runHandInit();
-        setupButtons();
+        //setupButtons();
+
+    }
+
+    private void wait(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private void runHandInit() {
@@ -145,14 +176,16 @@ public class ImageClassifierActivity extends Activity
     }
 
     private void setupButtons() {
-        try {
-            buttonInputDriver = new ButtonInputDriver(BoardDefaults.CONFIG_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE);
+
+       /*  try {
+           buttonInputDriver = new ButtonInputDriver(BoardDefaults.CONFIG_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_SPACE);
             resetButton = new ButtonInputDriver(BoardDefaults.RESET_BUTTON_GPIO, Button.LogicState.PRESSED_WHEN_HIGH, KeyEvent.KEYCODE_E);
             buttonInputDriver.register();
             resetButton.register();
         } catch (IOException e) {
             Log.e(TAG, "Failed to setup configuration buttons: " + e);
-        }
+        }*/
+
     }
 
     private Runnable mInitializeOnBackground = new Runnable() {
